@@ -1,12 +1,17 @@
-#include <stdint.h>
-#include <uart.hpp>
+#include "uart.hpp"
 
-extern "C" void kernel_main(){
-	uart_init();
-	uart_write("welcome to kernel!\r\n");
+void kernel_main() {
+    // Initialize UART
+    UART::init();
 
+    // Send string using UART::transmit
+    const char* msg = "Welcome to kernel!\r\n";
+    while (*msg) {
+        UART::transmit(*msg++);  // Transmit one character at a time
+    }
 
-	//init threads, shedular, etc will go here
-	
+    while (1) {
+        // Main loop
+    }
 }
 

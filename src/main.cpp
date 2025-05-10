@@ -1,11 +1,16 @@
-extern "C" void kernel_main();
+#include "uart.hpp"
 
-int main(){
-	kernel_main();
+int main() {
+    // Initialize UART
+    UART::init();
 
-	while(1){
-		;
-	}
+    // Print a test message
+    UART::uart_printf("Hello, STM32F401RBT6!\n");
+
+    while (1) {
+        // Wait for data or implement other logic
+    }
+
+    return 0;
 }
-
 

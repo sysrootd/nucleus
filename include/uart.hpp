@@ -1,5 +1,15 @@
-#pragma once
+#ifndef UART_HPP
+#define UART_HPP
 
-void uart_init();
-void uart_write(const char* str);
+#include <stdint.h>
+
+class UART {
+public:
+    static void init();
+    static void transmit(uint8_t data);
+    static uint8_t receive();
+    static void uart_printf(const char* fmt, ...);
+};
+
+#endif // UART_HPP
 

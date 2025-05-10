@@ -8,31 +8,34 @@ MEMORY
 
 SECTIONS
 {
-  .text ALIGN(4) :
+  /* Code and read-only data go to FLASH */
+  .text : 
   {
-    *(.isr_vector)
-    *(.text)
+    KEEP(*(.isr_vector))        /* Interrupt vectors */
+    *(.text)                    /* Code */
     *(.text.*)
     *(.init)
     *(.fini)
-    *(.rodata)
+    *(.rodata)                  /* Read-only data */
     *(.rodata.*)
     . = ALIGN(4);
-    _etext = .;
-  }> FLASH
+    _etext = .;                 /* End of text section */
+  } > FLASH
 
-  _la_data = LOADADDR(.data);
+  /* Initialized data copied from FLASH to SRAM */
+  _la_data = LOADADDR(.data);   /* Load address in FLASH */
 
-  .data ALIGN(4) : AT(LOADADDR(.data))
+  .data : AT(_la_data)
   {
-    _sdata = .;
+    _sdata = .;                 /* Start of data section in RAM */
     *(.data)
     *(.data.*)
     . = ALIGN(4);
-    _edata = .;
-  }> SRAM
+    _edata = .;                 /* End of data section */
+  } > SRAM
 
-  .bss ALIGN(4) :
+  /* Uninitialized data (zero-initialized) */
+  .bss (NOLOAD) :
   {
     _sbss = .;
     __bss_start__ = _sbss;
@@ -42,21 +45,23 @@ SECTIONS
     . = ALIGN(4);
     _ebss = .;
     __bss_end__ = _ebss;
-  }> SRAM
+  } > SRAM
 
-  .heap ALIGN(8) (NOLOAD) :
+  /* Simple heap (optional) */
+  .heap (NOLOAD) :
   {
     _sheap = .;
-    . = . + 0x1000; /* 4KB heap */
+    . = . + 0x1000; /* 4 KB heap */
     _eheap = .;
-  }> SRAM
+  } > SRAM
 
-  /* Optional: unwind info for stack traces */
+  /* Optional: exception index table */
   .ARM.exidx :
   {
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
   } > FLASH
 
+  /* Provide symbols for end of memory */
   PROVIDE(end = _ebss);
   PROVIDE(__end__ = _ebss);
 }

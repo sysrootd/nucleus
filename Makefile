@@ -1,42 +1,62 @@
 # Makefile for bare-metal STM32F401RBT6 project
 
-# Toolchain and Flags
+# Toolchain and flags
 CC = arm-none-eabi-g++
-AS = arm-none-eabi-as
-LD = arm-none-eabi-ld
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
-GDB = arm-none-eabi-gdb
 
-CFLAGS = -mcpu=cortex-m4 -mthumb -g -Wall -std=c++17 -ffunction-sections -fdata-sections
+CFLAGS = -mcpu=cortex-m4 -mthumb -g -Wall -std=c++17 -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti
 LDFLAGS = -T linker.ld -nostartfiles -nostdlib -nodefaultlibs
-OBJDIR = build
-SRCDIR = src
-INCDIR = include
-SYSTEMDIR = system
 
-# Files and directories
-SRC_FILES = $(wildcard $(SRCDIR)/*.cpp)
-OBJ_FILES = $(SRC_FILES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
-DEP_FILES = $(OBJ_FILES:.o=.d)
+INCDIRS = -Iinclude -Isystem
+OBJDIR = build
+
+# Source files
+SRC = $(wildcard src/*.cpp system/*.cpp)
+OBJ = $(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(SRC)))
 
 TARGET = kernal.elf
+BIN = kernal.bin
 
 # Default target
-all: $(TARGET)
+all: $(OBJDIR) $(TARGET)
 
-$(TARGET): $(OBJ_FILES)
-	$(CC) $(OBJ_FILES) $(LDFLAGS) -o $(TARGET)
-	$(OBJCOPY) -O binary $(TARGET) kernal.bin
-	$(OBJDUMP) -D $(TARGET) > kernal.lst
+# Link target
+$(TARGET): $(OBJ)
+	$(CC) $(OBJ) $(LDFLAGS) -o $@
+	$(OBJCOPY) -O binary $@ $(BIN)
+	$(OBJDUMP) -D $@ > kernal.lst
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(CC) $(CFLAGS) -I$(INCDIR) -I$(SYSTEMDIR) -c $< -o $@
+# Compile sources
+$(OBJDIR)/%.o: src/%.cpp
+	$(CC) $(CFLAGS) $(INCDIRS) -c $< -o $@
 
--include $(DEP_FILES)
+$(OBJDIR)/%.o: system/%.cpp
+	$(CC) $(CFLAGS) $(INCDIRS) -c $< -o $@
 
+# Create build dir
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+
+burn: kernal.bin
+	st-flash write kernal.bin 0x08000000 && st-flash reset
+
+connect: kernal.elf
+	openocd -f /usr/share/openocd/scripts/interface/stlink-v2.cfg \
+	        -f /usr/share/openocd/scripts/target/stm32f4x.cfg
+
+debug: kernal.elf
+	gdb-multiarch kernal.elf \
+	    -ex "target extended-remote localhost:3333" \
+	    -ex "monitor reset halt" \
+	    -ex "load" \
+	    -ex "break main" \
+	    -ex "continue"
+
+
+# Clean
 clean:
-	rm -rf $(OBJDIR)/*.o $(OBJDIR)/*.d $(TARGET) kernal.bin kernal.lst
+	rm -rf $(OBJDIR)/*.o $(TARGET) $(BIN) kernal.lst
 
-.PHONY: all clean
-
+.PHONY: all clean flash debug
