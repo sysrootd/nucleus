@@ -1,39 +1,63 @@
-/* linker.ld — for STM32F401RBT6 */
-
 ENTRY(Reset_Handler)
 
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 128K
-  RAM   (xrw) : ORIGIN = 0x20000000, LENGTH = 64K
+  FLASH(rx) : ORIGIN = 0x08000000, LENGTH = 128K
+  SRAM(rwx) : ORIGIN = 0x20000000, LENGTH = 64K
 }
 
 SECTIONS
 {
-  .text :
+  .text ALIGN(4) :
   {
-    KEEP(*(.isr_vector))       /* Vector table */
-    *(.text*)                  /* Code */
-    *(.rodata*)                /* Read-only data */
+    *(.isr_vector)
+    *(.text)
+    *(.text.*)
+    *(.init)
+    *(.fini)
+    *(.rodata)
+    *(.rodata.*)
+    . = ALIGN(4);
     _etext = .;
-  } > FLASH
+  }> FLASH
 
-  .data : AT(_etext)
+  _la_data = LOADADDR(.data);
+
+  .data ALIGN(4) : AT(LOADADDR(.data))
   {
     _sdata = .;
-    *(.data*)
+    *(.data)
+    *(.data.*)
+    . = ALIGN(4);
     _edata = .;
-  } > RAM
+  }> SRAM
 
-  .bss :
+  .bss ALIGN(4) :
   {
     _sbss = .;
-    *(.bss*)
+    __bss_start__ = _sbss;
+    *(.bss)
+    *(.bss.*)
     *(COMMON)
+    . = ALIGN(4);
     _ebss = .;
-  } > RAM
+    __bss_end__ = _ebss;
+  }> SRAM
 
-  /* Stack at the end of RAM */
-  _stack_top = ORIGIN(RAM) + LENGTH(RAM);
+  .heap ALIGN(8) (NOLOAD) :
+  {
+    _sheap = .;
+    . = . + 0x1000; /* 4KB heap */
+    _eheap = .;
+  }> SRAM
+
+  /* Optional: unwind info for stack traces */
+  .ARM.exidx :
+  {
+    *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+  } > FLASH
+
+  PROVIDE(end = _ebss);
+  PROVIDE(__end__ = _ebss);
 }
 
