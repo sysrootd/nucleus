@@ -2,10 +2,10 @@
 
 int main() {
     // Initialize UART
-    UART::init();
+    UART2::init();
 
     // Print a test message
-    UART::uart_printf("Hello, STM32F401RBT6!\n");
+    UART2::uart_printf("Hello, STM32F401RBT6!\n");
 
     while (1) {
         // Wait for data or implement other logic
