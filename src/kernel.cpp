@@ -2,12 +2,12 @@
 
 void kernel_main() {
     // Initialize UART
-    UART::init();
+    UART2::init();
 
-    // Send string using UART::transmit
+    // Send string using UART2::transmit
     const char* msg = "Welcome to kernel!\r\n";
     while (*msg) {
-        UART::transmit(*msg++);  // Transmit one character at a time
+        UART2::transmit(*msg++);  // Transmit one character at a time
     }
 
     while (1) {

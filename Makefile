@@ -5,8 +5,12 @@ CC = arm-none-eabi-g++
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 
+#CFLAGS = -mcpu=cortex-m4 -mthumb -g -Wall -std=c++17 -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti -Iinclude
+
+
 CFLAGS = -mcpu=cortex-m4 -mthumb -g -Wall -std=c++17 -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti
 LDFLAGS = -T linker.ld -nostartfiles -nostdlib -nodefaultlibs
+
 
 INCDIRS = -Iinclude -Isystem
 OBJDIR = build

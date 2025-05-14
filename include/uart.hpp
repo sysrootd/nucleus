@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-class UART {
+class UART2 {
 public:
     static void init();
     static void transmit(uint8_t data);
@@ -12,4 +12,3 @@ public:
 };
 
 #endif // UART_HPP
-
