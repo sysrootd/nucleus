@@ -1,50 +1,40 @@
+#include "stm32.h"
 #include "uart.hpp"
 #include <cstdarg>
 
-// UART1 Base Address (STM32F401)
-#define UART1_BASE 0x40011000U
-#define UART_SR (volatile uint32_t*)(UART1_BASE + 0x00)
-#define UART_DR (volatile uint32_t*)(UART1_BASE + 0x04)
-#define UART_BRR (volatile uint32_t*)(UART1_BASE + 0x08)
-#define UART_CR1 (volatile uint32_t*)(UART1_BASE + 0x0C)
 
-// UART register bit definitions
-#define UART_CR1_UE (1 << 13)  // USART enable
-#define UART_CR1_TE (1 << 3)   // Transmitter enable
-#define UART_CR1_RE (1 << 2)   // Receiver enable
-#define UART_SR_TXE (1 << 7)   // Transmit data register empty
-#define UART_SR_RXNE (1 << 5)  // Read data register not empty
 
-void UART::init() {
+
+void UART2::init() {
     // Enable UART1 clock (this can be done in RCC)
     // Simplified; you'll need to configure the clock in actual code
 
     // Configure baud rate to 9600 (assuming 16 MHz APB2 clock)
-    *UART_BRR = 0x683;  // BRR = 16 MHz / 9600
+    USART2->BRR = 0x683;  // BRR = 16 MHz / 9600
 
     // Enable the UART, transmitter, and receiver
-    *UART_CR1 = UART_CR1_UE | UART_CR1_TE | UART_CR1_RE;
+    USART2->CR1 = 0x01;
 }
 
-void UART::transmit(uint8_t data) {
+void UART2::transmit(uint8_t data) {
     // Wait for the TXE bit to be set (TX register empty)
-    while (!(*UART_SR & UART_SR_TXE));
+    while (!(USART2->SR & 0x01));
 
     // Write data to the data register
-    *UART_DR = data;
+    USART2->DR = data;
 }
 
-uint8_t UART::receive() {
+uint8_t UART2::receive() {
     // Wait for the RXNE bit to be set (RX register not empty)
-    while (!(*UART_SR & UART_SR_RXNE));
+    while (!(USART2->SR & 0x01));
 
     // Read data from the data register
-    return static_cast<uint8_t>(*UART_DR);
+    return static_cast<uint8_t>(USART2->DR);
 }
 
 
 // Custom printf for bare-metal STM32
-void UART::uart_printf(const char* fmt, ...) {
+void UART2::uart_printf(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
@@ -54,19 +44,19 @@ void UART::uart_printf(const char* fmt, ...) {
             if (*fmt == 'c') {
                 // Print single character
                 char c = static_cast<char>(va_arg(args, int));
-                UART::transmit(c);
+                UART2::transmit(c);
             }
             else if (*fmt == 's') {
                 // Print string
                 const char* str = va_arg(args, const char*);
                 while (*str) {
-                    UART::transmit(*str++);
+                    UART2::transmit(*str++);
                 }
             }
         }
         else {
             // Print regular character
-            UART::transmit(*fmt);
+            UART2::transmit(*fmt);
         }
         fmt++;
     }
