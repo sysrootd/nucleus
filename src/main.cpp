@@ -1,16 +1,12 @@
+#include "stm32.h"
 #include "uart.hpp"
 
 int main() {
-    // Initialize UART
+
     UART2::init();
-
-    // Print a test message
-    UART2::uart_printf("Hello, STM32F401RBT6!\n");
-
+    UART2::uart_printf("Hello I'm Rakesh: %d\n", 007);
     while (1) {
-        // Wait for data or implement other logic
+        char c = UART2::receive();
+        UART2::transmit(c); // echo
     }
-
-    return 0;
 }
-
