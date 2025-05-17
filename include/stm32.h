@@ -8,25 +8,25 @@
 #define __IO volatile
 
 // ===================== Base Addresses =====================
-#define PERIPH_BASE      0x40000000UL
-#define AHB1PERIPH_BASE  0x40020000UL
-#define AHB2PERIPH_BASE  0x50000000UL
-#define APB1PERIPH_BASE  0x40000000UL
-#define APB2PERIPH_BASE  0x40010000UL
+#define PERIPH_BASE       0x40000000UL
+#define AHB1PERIPH_BASE   0x40020000UL
+#define AHB2PERIPH_BASE   0x50000000UL
+#define APB1PERIPH_BASE   0x40000000UL
+#define APB2PERIPH_BASE   0x40010000UL
 
-#define RCC_BASE         (AHB1PERIPH_BASE + 0x3800UL)
-#define GPIOA_BASE       (AHB1PERIPH_BASE + 0x0000UL)
-#define GPIOB_BASE       (AHB1PERIPH_BASE + 0x0400UL)
-#define GPIOC_BASE       (AHB1PERIPH_BASE + 0x0800UL)
-#define SYSCFG_BASE      (APB2PERIPH_BASE + 0x3800UL)
-#define EXTI_BASE        (APB2PERIPH_BASE + 0x3C00UL)
-#define ADC_BASE         (APB2PERIPH_BASE + 0x2000UL)
-#define USART2_BASE      (APB1PERIPH_BASE + 0x4400UL)
+#define RCC_BASE          (AHB1PERIPH_BASE + 0x3800UL)
+#define GPIOA_BASE        (AHB1PERIPH_BASE + 0x0000UL)
+#define GPIOB_BASE        (AHB1PERIPH_BASE + 0x0400UL)
+#define GPIOC_BASE        (AHB1PERIPH_BASE + 0x0800UL)
+#define SYSCFG_BASE       (APB2PERIPH_BASE + 0x3800UL)
+#define EXTI_BASE         (APB2PERIPH_BASE + 0x3C00UL)
+#define ADC_BASE          (APB2PERIPH_BASE + 0x2000UL)
+#define USART2_BASE       (APB1PERIPH_BASE + 0x4400UL)
 
-#define NVIC_BASE        0xE000E100UL
-#define STK_BASE         0xE000E010UL
+#define NVIC_BASE         0xE000E100UL
+#define STK_BASE          0xE000E010UL
 
-// ===================== Struct Definitions =====================
+// ===================== Peripheral Register Structs =====================
 struct GPIO_Type {
     __IO uint32_t MODER;
     __IO uint32_t OTYPER;
@@ -56,7 +56,6 @@ struct RCC_Type {
     uint32_t RESERVED2[2];
     __IO uint32_t APB1ENR;
     __IO uint32_t APB2ENR;
-    // more registers can be added if needed
 };
 
 struct EXTI_Type {
@@ -93,8 +92,7 @@ struct STK_Type {
     __IO uint32_t CALIB;
 };
 
-// ===================== Peripheral Definitions =====================
-
+// ===================== Peripheral Instances =====================
 #define GPIOA   ((GPIO_Type*) GPIOA_BASE)
 #define GPIOB   ((GPIO_Type*) GPIOB_BASE)
 #define GPIOC   ((GPIO_Type*) GPIOC_BASE)
@@ -105,10 +103,9 @@ struct STK_Type {
 #define STK     ((STK_Type*) STK_BASE)
 
 /*
-	Example usage in code:
-	GPIOA->MODER |= (1 << 10);
-	RCC->AHB1ENR |= (1 << 0);
-	EXTI->IMR |= (1 << 0);
-
+Example usage:
+    GPIOA->MODER |= (1 << 10);
+    RCC->AHB1ENR |= (1 << 0);
+    USART2->DR = 'A';
+    EXTI->IMR |= (1 << 0);
 */
-
