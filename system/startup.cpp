@@ -23,21 +23,22 @@ extern "C" {
     int main(void);
     void RCC_Clock_Config(void);
     void Reset_Handler(void) __attribute__((noreturn));
-    void Default_Handler(void) __attribute__((noreturn));
+    // Mark Default_Handler as noreturn and nothrow
+    void Default_Handler(void) __attribute__((noreturn, nothrow));
 
-    // Weak aliases for exception/IRQ handlers
-    void NMI_Handler(void)           __attribute__((weak, alias("Default_Handler")));
-    void HardFault_Handler(void)     __attribute__((weak, alias("Default_Handler")));
-    void MemManage_Handler(void)     __attribute__((weak, alias("Default_Handler")));
-    void BusFault_Handler(void)      __attribute__((weak, alias("Default_Handler")));
-    void UsageFault_Handler(void)    __attribute__((weak, alias("Default_Handler")));
-    void SVC_Handler(void)           __attribute__((weak, alias("Default_Handler")));
-    void DebugMon_Handler(void)      __attribute__((weak, alias("Default_Handler")));
-    void PendSV_Handler(void)        __attribute__((weak, alias("Default_Handler")));
-    void SysTick_Handler(void)       __attribute__((weak, alias("Default_Handler")));
-
+    // Weak aliases for exception handlers (must match attributes of Default_Handler)
+    void NMI_Handler(void)               __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    void HardFault_Handler(void)        __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    void MemManage_Handler(void)        __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    void BusFault_Handler(void)         __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    void UsageFault_Handler(void)       __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    void SVC_Handler(void)              __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    void DebugMon_Handler(void)         __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    void PendSV_Handler(void)           __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    void SysTick_Handler(void)          __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    
     // External interrupts
-    void USART2_IRQHandler(void)     __attribute__((weak, alias("Default_Handler")));
+    void USART2_IRQHandler(void)        __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
 
     // Vector table
     __attribute__((section(".isr_vector")))
@@ -61,9 +62,10 @@ extern "C" {
     };
 }
 
-// Default fault/IRQ handler
+//Default handler
+__attribute__((noreturn, nothrow))
 void Default_Handler(void) {
-    while (true);  // Hang forever on fault
+    while (1);
 }
 
 // Basic RCC config to enable HSI (16MHz) as SYSCLK
