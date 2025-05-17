@@ -20,10 +20,8 @@
 #define GPIOC_BASE        (AHB1PERIPH_BASE + 0x0800UL)
 #define SYSCFG_BASE       (APB2PERIPH_BASE + 0x3800UL)
 #define EXTI_BASE         (APB2PERIPH_BASE + 0x3C00UL)
-#define ADC_BASE          (APB2PERIPH_BASE + 0x2000UL)
+#define ADC1_BASE         (APB2PERIPH_BASE + 0x2000UL)
 #define USART2_BASE       (APB1PERIPH_BASE + 0x4400UL)
-
-#define NVIC_BASE         0xE000E100UL
 #define STK_BASE          0xE000E010UL
 
 // ===================== Peripheral Register Structs =====================
@@ -56,6 +54,12 @@ struct RCC_Type {
     uint32_t RESERVED2[2];
     __IO uint32_t APB1ENR;
     __IO uint32_t APB2ENR;
+    uint32_t RESERVED3[2];
+    __IO uint32_t BDCR;
+    __IO uint32_t CSR;
+    uint32_t RESERVED4[2];
+    __IO uint32_t SSCGR;
+    __IO uint32_t PLLI2SCFGR;
 };
 
 struct EXTI_Type {
@@ -92,20 +96,44 @@ struct STK_Type {
     __IO uint32_t CALIB;
 };
 
+struct ADC_Type {
+    __IO uint32_t SR;
+    __IO uint32_t CR1;
+    __IO uint32_t CR2;
+    __IO uint32_t SMPR1;
+    __IO uint32_t SMPR2;
+    __IO uint32_t JOFR1;
+    __IO uint32_t JOFR2;
+    __IO uint32_t JOFR3;
+    __IO uint32_t JOFR4;
+    __IO uint32_t HTR;
+    __IO uint32_t LTR;
+    __IO uint32_t SQR1;
+    __IO uint32_t SQR2;
+    __IO uint32_t SQR3;
+    __IO uint32_t JSQR;
+    __IO uint32_t JDR1;
+    __IO uint32_t JDR2;
+    __IO uint32_t JDR3;
+    __IO uint32_t JDR4;
+    __IO uint32_t DR;
+};
+
 // ===================== Peripheral Instances =====================
-#define GPIOA   ((GPIO_Type*) GPIOA_BASE)
-#define GPIOB   ((GPIO_Type*) GPIOB_BASE)
-#define GPIOC   ((GPIO_Type*) GPIOC_BASE)
-#define RCC     ((RCC_Type*) RCC_BASE)
-#define EXTI    ((EXTI_Type*) EXTI_BASE)
-#define SYSCFG  ((SYSCFG_Type*) SYSCFG_BASE)
-#define USART2  ((USART_Type*) USART2_BASE)
-#define STK     ((STK_Type*) STK_BASE)
+#define GPIOA      ((GPIO_Type*) GPIOA_BASE)
+#define GPIOB      ((GPIO_Type*) GPIOB_BASE)
+#define GPIOC      ((GPIO_Type*) GPIOC_BASE)
+#define RCC        ((RCC_Type*)  RCC_BASE)
+#define EXTI_REGS  ((EXTI_Type*) EXTI_BASE)
+#define SYSCFG     ((SYSCFG_Type*) SYSCFG_BASE)
+#define USART2     ((USART_Type*) USART2_BASE)
+#define STK        ((STK_Type*) STK_BASE)
+#define ADC1       ((ADC_Type*) ADC1_BASE)
 
 /*
 Example usage:
-    GPIOA->MODER |= (1 << 10);
-    RCC->AHB1ENR |= (1 << 0);
-    USART2->DR = 'A';
-    EXTI->IMR |= (1 << 0);
+    GPIOB->MODER |= (1 << 26);     // PB13 output
+    GPIOC->IDR & (1 << 8);         // Read PC8
+    RCC->AHB1ENR |= (1 << 1);      // Enable GPIOB clock
+    EXTI_REGS->IMR |= (1 << 0);    // Enable interrupt for EXTI0
 */
