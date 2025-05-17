@@ -27,7 +27,7 @@ extern "C" {
     void Default_Handler(void) __attribute__((noreturn, nothrow));
 
     // Weak aliases for exception handlers (must match attributes of Default_Handler)
-    void NMI_Handler(void)               __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
+    void NMI_Handler(void)              __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
     void HardFault_Handler(void)        __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
     void MemManage_Handler(void)        __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
     void BusFault_Handler(void)         __attribute__((weak, alias("Default_Handler"), noreturn, nothrow));
