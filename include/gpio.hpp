@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stm32.h"
+#include "stm32.hpp"
 
 enum class GPIOPin {
     Pin0 = 0,
