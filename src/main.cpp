@@ -1,36 +1,36 @@
-#include "stm32.h"
-#include "systick.hpp"
+#include "gpio.hpp"
+#include "timer.hpp"
+#include "stm32.hpp"
 
 int main() {
-    // Enable GPIOC and GPIOB clocks
-    RCC->AHB1ENR |= (1 << 2);  // GPIOC
-    RCC->AHB1ENR |= (1 << 1);  // GPIOB
+    // Enable GPIOB clock
+    RCC->AHB1ENR |= (1 << 1);
 
-    // ================= Configure PC8 and PC9 as inputs =================
-    GPIOC->MODER &= ~(0b11 << (8 * 2));  // PC8 input mode
-    GPIOC->MODER &= ~(0b11 << (9 * 2));  // PC9 input mode
+    // Create GPIO instance for GPIOB port
+    GPIO gpioB = GPIO(GPIOB);
 
-    // Enable pull-up resistors on PC8 and PC9
-    GPIOC->PUPDR &= ~(0b11 << (8 * 2));
-    GPIOC->PUPDR |=  (0b01 << (8 * 2));
+    // Configure PB13 and PB14 as output
+    gpioB.set_mode(GPIOPin::Pin13, GPIOMode::Output);
+    gpioB.set_mode(GPIOPin::Pin14, GPIOMode::Output);
 
-    GPIOC->PUPDR &= ~(0b11 << (9 * 2));
-    GPIOC->PUPDR |=  (0b01 << (9 * 2));
+    // Use Timer2 from timer.hpp directly
+    using Timer2 = Timer<TIM2_Info>;
 
-    // ================= Configure PB13 as output (LED) =================
-    GPIOB->MODER &= ~(0b11 << (13 * 2));  // Clear mode bits
-    GPIOB->MODER |=  (0b01 << (13 * 2));  // Set as output
-
-    // ================= Initialize SysTick for delays =================
-    SysTick_Init(16000000);  // Assuming system clock is 16 MHz
+    // Initialize Timer2 with prescaler and auto reload for 1 second overflow
+    Timer2::init(16000 - 1, 1000 - 1);
 
     while (1) {
-        bool pc8_pressed = !(GPIOC->IDR & (1 << 8));  // Active low
-        bool pc9_pressed = !(GPIOC->IDR & (1 << 9));
+        // Check if update interrupt flag (UIF) is set, means timer overflowed
+        if (TIM2->SR & (1 << 0)) {
+            TIM2->SR &= ~(1 << 0);  // Clear the flag
 
-        if (pc8_pressed || pc9_pressed) {
-            GPIOB->ODR ^= (1 << 13);  // Toggle PB13 LED
-            delay_ms(200);            // Simple debounce delay
+            static bool led_state = false;
+            led_state = !led_state;
+
+            gpioB.write(GPIOPin::Pin13, led_state);
+            gpioB.write(GPIOPin::Pin14, !led_state);
         }
     }
+
+    return 0;
 }

@@ -1,7 +1,7 @@
 #include "stm32f401xe.h"   // defines IRQn_Type and interrupt numbers
 #include "core_cm4.h"      // CMSIS core header using IRQn_Type
 #include "../drivers/exti.hpp"
-#include "stm32.h"
+#include "stm32.hpp"
 
 void EXTI::enable(uint8_t line, EXTI_Trigger trigger) {
     // Enable SYSCFG clock
