@@ -50,7 +50,8 @@ $(OBJDIR):
 # Flash the chip
 burn: $(BIN)
 	sleep 1
-	st-flash write $(BIN) 0x08000000 && st-flash reset
+	st-flash --reset write $(BIN) 0x08000000 && st-flash reset
+	#st-flash write $(BIN) 0x08000000 && st-flash reset
 
 # OpenOCD connection
 connect: $(TARGET)
