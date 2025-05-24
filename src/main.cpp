@@ -1,36 +1,33 @@
-#include "gpio.hpp"
-#include "timer.hpp"
 #include "stm32.hpp"
+#include "gpio.hpp"
+#include "adc.hpp"
+#include "uart.hpp"
+#include "systick.hpp"
 
 int main() {
-    // Enable GPIOB clock
-    RCC->AHB1ENR |= (1 << 1);
 
-    // Create GPIO instance for GPIOB port
-    GPIO gpioB = GPIO(GPIOB);
+    //Systick init
+    SysTick_Init();
+    
+    // Set PA1 to analog mode for ADC channel 1
+    GPIO gpioC = GPIO(GPIOC);
+    gpioC.set_mode(GPIOPin::Pin0, GPIOMode::Analog);
 
-    // Configure PB13 and PB14 as output
-    gpioB.set_mode(GPIOPin::Pin13, GPIOMode::Output);
-    gpioB.set_mode(GPIOPin::Pin14, GPIOMode::Output);
+    // Initialize ADC
+    ADC1 adc = ADC1(ADC);
+    adc.enable();
+    adc.configure_channel(10);
 
-    // Use Timer2 from timer.hpp directly
-    using Timer2 = Timer<TIM2_Info>;
+    // Initialize UART2
+    UART2::init();
 
-    // Initialize Timer2 with prescaler and auto reload for 1 second overflow
-    Timer2::init(16000 - 1, 1000 - 1);
+    while (true) {
+        adc.start_conversion();
+        while (!adc.is_conversion_complete());
 
-    while (1) {
-        // Check if update interrupt flag (UIF) is set, means timer overflowed
-        if (TIM2->SR & (1 << 0)) {
-            TIM2->SR &= ~(1 << 0);  // Clear the flag
+        uint16_t value = adc.read_value();
 
-            static bool led_state = false;
-            led_state = !led_state;
-
-            gpioB.write(GPIOPin::Pin13, led_state);
-            gpioB.write(GPIOPin::Pin14, !led_state);
-        }
+        UART2::uart_printf("Temp: %d*C\r\n", value);
+        delay_ms(1000);
     }
-
-    return 0;
 }

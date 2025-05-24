@@ -8,9 +8,9 @@ volatile uint32_t tick_ms = 0;
 void SysTick_Init(uint32_t system_clock_hz) {
     SysTick->LOAD = (system_clock_hz / 1000) - 1;  // 1ms tick
     SysTick->VAL = 0;
-    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk  // processor clock
-                  | SysTick_CTRL_TICKINT_Msk    // enable interrupt
-                  | SysTick_CTRL_ENABLE_Msk;    // enable SysTick
+    SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk  // Processor clock
+                  | SysTick_CTRL_TICKINT_Msk    // Enable interrupt
+                  | SysTick_CTRL_ENABLE_Msk;    // Enable SysTick
 }
 
 extern "C" void SysTick_Handler(void) {
