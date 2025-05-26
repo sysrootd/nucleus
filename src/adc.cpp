@@ -1,4 +1,9 @@
-#include "adc.hpp"
+#define __NVIC_PRIO_BITS 4  // Required before core_cm4.h
+#include "stm32.hpp"
+#include "stm32f401xe.h"  // Provides IRQn_Type, ADC_IRQn, and all peripheral base addresses
+#include "core_cm4.h"     // Provides NVIC functions
+#include "adc.hpp"  // Your ADC class
+
 
 void (*ADC1::user_callback)(uint16_t) = nullptr;
 
@@ -8,7 +13,7 @@ void ADC1::enable() {
     RCC->APB2ENR |= (1 << 8);  // Enable ADC1 clock
     adc->CR2 = 0;              // Disable for configuration
     adc->CR1 = 0;              // Independent mode
-    adc->SQR1 = 0;             // One conversion in sequence
+    adc->SQR1 = 0;             // One conversion
     adc->CR2 |= (1 << 0);      // Enable ADC
 }
 
@@ -18,10 +23,9 @@ void ADC1::disable() {
 
 void ADC1::configure_channel(uint8_t channel) {
     adc->SQR3 = channel;
-
     if (channel <= 9) {
         adc->SMPR2 &= ~(0b111 << (channel * 3));
-        adc->SMPR2 |=  (0b100 << (channel * 3));  // 84 cycles
+        adc->SMPR2 |=  (0b100 << (channel * 3));
     } else {
         uint8_t ch = channel - 10;
         adc->SMPR1 &= ~(0b111 << (ch * 3));
@@ -42,26 +46,26 @@ uint16_t ADC1::read_value() const {
 }
 
 void ADC1::enable_interrupt() {
-    adc->CR1 |= (1 << 5);      // EOCIE: End of conversion interrupt enable
-    NVIC_EnableIRQ(ADC_IRQn);  // Enable ADC interrupt in NVIC
+    adc->CR1 |= (1 << 5);      // EOCIE
+    NVIC_EnableIRQ(ADC_IRQn);  // Enable interrupt
 }
 
 void ADC1::disable_interrupt() {
-    adc->CR1 &= ~(1 << 5);     // Disable EOC interrupt
+    adc->CR1 &= ~(1 << 5);
     NVIC_DisableIRQ(ADC_IRQn);
 }
 
-void ADC1::set_callback(void (*callback)(uint16_t value)) {
+void ADC1::set_callback(void (*callback)(uint16_t)) {
     user_callback = callback;
 }
 
-// === Interrupt handler (must be in your startup vector table) ===
+// === Correct interrupt handler ===
 extern "C" void ADC_IRQHandler(void) {
-    if (ADC1->SR & (1 << 1)) {  // EOC
-        uint16_t value = static_cast<uint16_t>(ADC1->DR);
+    if (ADC->SR & (1 << 1)) {  // EOC
+        uint16_t value = static_cast<uint16_t>(ADC->DR);
         if (ADC1::user_callback) {
             ADC1::user_callback(value);
         }
-        ADC1->SR &= ~(1 << 1);  // Clear EOC flag
+        ADC->SR &= ~(1 << 1);  // Clear EOC flag
     }
 }
