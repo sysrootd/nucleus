@@ -19,7 +19,9 @@ public:
     
     static void set_callback(void (*callback)(uint16_t value));
 
+    static void (*user_callback)(uint16_t);
+
+
 private:
     ADC_Type* adc;
-    static void (*user_callback)(uint16_t value);
 };
