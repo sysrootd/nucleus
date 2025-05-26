@@ -4,30 +4,31 @@
 #include "uart.hpp"
 #include "systick.hpp"
 
+// Callback function to handle ADC conversion result
+void adc_callback(uint16_t value) {
+    UART2::uart_printf("ADC Value (Interrupt): %d\r\n", value);
+}
+
 int main() {
-
-    //Systick init
+    // Initialize SysTick (default 16 MHz)
     SysTick_Init();
-    
-    // Set PA1 to analog mode for ADC channel 1
-    GPIO gpioC = GPIO(GPIOC);
-    gpioC.set_mode(GPIOPin::Pin0, GPIOMode::Analog);
 
-    // Initialize ADC
-    ADC1 adc = ADC1(ADC);
-    adc.enable();
-    adc.configure_channel(10);
-
-    // Initialize UART2
+    // Initialize UART2 for printing
     UART2::init();
 
-    while (true) {
-        adc.start_conversion();
-        while (!adc.is_conversion_complete());
+    // Configure PC0 (ADC Channel 10) as analog input
+    GPIO gpioC(GPIOC);
+    gpioC.set_mode(GPIOPin::Pin0, GPIOMode::Analog);
 
-        uint16_t value = adc.read_value();
+    // Initialize ADC1
+    ADC1 adc(ADC);
+    adc.enable();
+    adc.configure_channel(10);         // Channel 10 = PC0
+    adc.set_callback(adc_callback);    // Set ISR callback
+    adc.enable_interrupt();            // Enable EOC interrupt
 
-        UART2::uart_printf("Temp: %d*C\r\n", value);
-        delay_ms(1000);
+    while (1) {
+        adc.start_conversion();        // Start a conversion
+        delay_ms(1000);                // Delay for readability
     }
 }
