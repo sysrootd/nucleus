@@ -4,7 +4,6 @@
 #include "core_cm4.h"     // Provides NVIC functions
 #include "adc.hpp"  // Your ADC class
 
-
 void (*ADC1::user_callback)(uint16_t) = nullptr;
 
 ADC1::ADC1(ADC_Type* adc) : adc(adc) {}
@@ -59,7 +58,7 @@ void ADC1::set_callback(void (*callback)(uint16_t)) {
     user_callback = callback;
 }
 
-// === Correct interrupt handler ===
+// === interrupt handler ===
 extern "C" void ADC_IRQHandler(void) {
     if (ADC->SR & (1 << 1)) {  // EOC
         uint16_t value = static_cast<uint16_t>(ADC->DR);

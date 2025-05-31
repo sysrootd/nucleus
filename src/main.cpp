@@ -1,14 +1,18 @@
+//-----------------------include files----------------------//
 #include "stm32.hpp"
 #include "gpio.hpp"
 #include "adc.hpp"
 #include "uart.hpp"
 #include "systick.hpp"
 
-// Callback function to handle ADC conversion result
 void adc_callback(uint16_t value) {
     UART2::uart_printf("ADC Value (Interrupt): %d\r\n", value);
 }
 
+
+
+
+//-----------------------main------------------------------//
 int main() {
     // Initialize SysTick (default 16 MHz)
     SysTick_Init();
