@@ -18,6 +18,7 @@ int main() {
 
     // Configure PC0 (ADC Channel 10) as analog input
     GPIO gpioC(GPIOC);
+    GPIO gpioA(GPIOA);
     gpioC.set_mode(GPIOPin::Pin0, GPIOMode::Analog);
 
     // Initialize ADC1
