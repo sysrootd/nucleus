@@ -21,7 +21,8 @@ int main() {
     UART2::init();
 
     // Configure PC0 (ADC Channel 10) as analog input
-    GPIO gpioC(GPIOC);
+    GPIO gpioC = GPIO(GPIOC);
+    GPIO gpioA = GPIO(GPIOA)
     gpioC.set_mode(GPIOPin::Pin0, GPIOMode::Analog);
 
     // Initialize ADC1
