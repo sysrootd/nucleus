@@ -26,8 +26,8 @@ public:
     ThreadControlBlock* get_tcb();
 
 private:
-    alignas(8) uint32_t stack[STACK_SIZE];
     ThreadControlBlock tcb;
+    alignas(8) uint32_t stack[STACK_SIZE];
 
     void setup_stack(void (*entry)(void));
 };

@@ -9,7 +9,7 @@
 #include "thread.hpp"
 #include "gpio.hpp"
 
-GPIO gpioB(GPIOB);  // Create instance for GPIOA
+GPIO gpioB = GPIO(GPIOB);  // Create instance for GPIOA
 
 void led_task_1() {
     while (true) {
@@ -41,11 +41,10 @@ int main() {
 
     // Configure PC0 (ADC Channel 10) as analog input
     GPIO gpioC = GPIO(GPIOC);
-    GPIO gpioA = GPIO(GPIOA)
     gpioC.set_mode(GPIOPin::Pin0, GPIOMode::Analog);
     // Create threads
-    static Thread t1(led_task_1, 1);
-    static Thread t2(led_task_2, 1);
+    static Thread t1 = Thread(led_task_1, 1);
+    static Thread t2 = Thread(led_task_2, 1);
 
     // Add threads to scheduler
     Scheduler::add_thread(t1.get_tcb());
