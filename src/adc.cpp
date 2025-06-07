@@ -48,23 +48,16 @@ uint16_t Adc::read_value() const {
     return static_cast<uint16_t>(adc->DR);
 }
 
-void ADC1::enable_interrupt() {
-    adc->CR1 |= (1 << 5);      // EOCIE
-    NVIC_EnableIRQ(ADC_IRQn);  // Enable interrupt
 void Adc::enable_interrupt() {
     adc->CR1 |= (1 << 5);        // EOCIE: End of conversion interrupt enable
     NVIC_EnableIRQ(ADC_IRQn);   // Enable ADC interrupt in NVIC
 }
 
-void ADC1::disable_interrupt() {
-    adc->CR1 &= ~(1 << 5);
-    NVIC_DisableIRQ(ADC_IRQn);
 void Adc::disable_interrupt() {
     adc->CR1 &= ~(1 << 5);       // Disable EOC interrupt
     NVIC_DisableIRQ(ADC_IRQn);  // Disable NVIC interrupt
 }
 
-void ADC1::set_callback(void (*callback)(uint16_t)) {
 void Adc::set_callback(void (*callback)(uint16_t value)) {
     user_callback = callback;
 }
@@ -72,16 +65,11 @@ void Adc::set_callback(void (*callback)(uint16_t value)) {
 // === interrupt handler ===
 // === ADC Interrupt Handler ===
 extern "C" void ADC_IRQHandler(void) {
-    if (ADC->SR & (1 << 1)) {  // EOC
-        uint16_t value = static_cast<uint16_t>(ADC->DR);
-        if (ADC1::user_callback) {
-            ADC1::user_callback(value);
     if (ADC->SR & (1 << 1)) {  // Check EOC flag
         uint16_t value = static_cast<uint16_t>(ADC->DR);
         if (Adc::user_callback) {
             Adc::user_callback(value);
         }
-        ADC->SR &= ~(1 << 1);  // Clear EOC flag
         ADC->SR &= ~(1 << 1);  // Clear EOC flag
     }
 }
