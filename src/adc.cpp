@@ -1,10 +1,10 @@
-#define __NVIC_PRIO_BITS 4  // Required before core_cm4.h
+#define __NVIC_PRIO_BITS 4      // Required before core_cm4.h
 #include "stm32.hpp"
-#include "stm32f401xe.h"  // Provides IRQn_Type, ADC_IRQn, and all peripheral base addresses
-#include "core_cm4.h"     // Provides NVIC functions
-#include "adc.hpp"  // Your ADC class
-#include "stm32f401xe.h"  // For ADC1 and ADC_IRQn
-#include "core_cm4.h"     // For NVIC_EnableIRQ and NVIC_DisableIRQ
+#include "stm32f401xe.h"        // Provides IRQn_Type, ADC_IRQn, and all peripheral base addresses
+#include "core_cm4.h"           // Provides NVIC functions
+#include "adc.hpp"              // Your ADC class
+#include "stm32f401xe.h"        // For ADC1 and ADC_IRQn
+#include "core_cm4.h"           // For NVIC_EnableIRQ and NVIC_DisableIRQ
 #include "adc.hpp"
 
 void (*Adc::user_callback)(uint16_t) = nullptr;
