@@ -3,12 +3,15 @@
 #include "stm32f401xe.h"  // Provides IRQn_Type, ADC_IRQn, and all peripheral base addresses
 #include "core_cm4.h"     // Provides NVIC functions
 #include "adc.hpp"  // Your ADC class
+#include "stm32f401xe.h"  // For ADC1 and ADC_IRQn
+#include "core_cm4.h"     // For NVIC_EnableIRQ and NVIC_DisableIRQ
+#include "adc.hpp"
 
-void (*ADC1::user_callback)(uint16_t) = nullptr;
+void (*Adc::user_callback)(uint16_t) = nullptr;
 
-ADC1::ADC1(ADC_Type* adc) : adc(adc) {}
+Adc::Adc(ADC_Type* adc) : adc(adc) {}
 
-void ADC1::enable() {
+void Adc::enable() {
     RCC->APB2ENR |= (1 << 8);  // Enable ADC1 clock
     adc->CR2 = 0;              // Disable for configuration
     adc->CR1 = 0;              // Independent mode
@@ -16,15 +19,16 @@ void ADC1::enable() {
     adc->CR2 |= (1 << 0);      // Enable ADC
 }
 
-void ADC1::disable() {
+void Adc::disable() {
     adc->CR2 &= ~(1 << 0);
 }
 
-void ADC1::configure_channel(uint8_t channel) {
+void Adc::configure_channel(uint8_t channel) {
     adc->SQR3 = channel;
     if (channel <= 9) {
         adc->SMPR2 &= ~(0b111 << (channel * 3));
         adc->SMPR2 |=  (0b100 << (channel * 3));
+        adc->SMPR2 |=  (0b100 << (channel * 3));  // 84 ADC cycles
     } else {
         uint8_t ch = channel - 10;
         adc->SMPR1 &= ~(0b111 << (ch * 3));
@@ -32,39 +36,52 @@ void ADC1::configure_channel(uint8_t channel) {
     }
 }
 
-void ADC1::start_conversion() {
+void Adc::start_conversion() {
     adc->CR2 |= (1 << 30);  // SWSTART
 }
 
-bool ADC1::is_conversion_complete() const {
-    return (adc->SR & (1 << 1));  // EOC
+bool Adc::is_conversion_complete() const {
+    return (adc->SR & (1 << 1));  // EOC flag
 }
 
-uint16_t ADC1::read_value() const {
+uint16_t Adc::read_value() const {
     return static_cast<uint16_t>(adc->DR);
 }
 
 void ADC1::enable_interrupt() {
     adc->CR1 |= (1 << 5);      // EOCIE
     NVIC_EnableIRQ(ADC_IRQn);  // Enable interrupt
+void Adc::enable_interrupt() {
+    adc->CR1 |= (1 << 5);        // EOCIE: End of conversion interrupt enable
+    NVIC_EnableIRQ(ADC_IRQn);   // Enable ADC interrupt in NVIC
 }
 
 void ADC1::disable_interrupt() {
     adc->CR1 &= ~(1 << 5);
     NVIC_DisableIRQ(ADC_IRQn);
+void Adc::disable_interrupt() {
+    adc->CR1 &= ~(1 << 5);       // Disable EOC interrupt
+    NVIC_DisableIRQ(ADC_IRQn);  // Disable NVIC interrupt
 }
 
 void ADC1::set_callback(void (*callback)(uint16_t)) {
+void Adc::set_callback(void (*callback)(uint16_t value)) {
     user_callback = callback;
 }
 
 // === interrupt handler ===
+// === ADC Interrupt Handler ===
 extern "C" void ADC_IRQHandler(void) {
     if (ADC->SR & (1 << 1)) {  // EOC
         uint16_t value = static_cast<uint16_t>(ADC->DR);
         if (ADC1::user_callback) {
             ADC1::user_callback(value);
+    if (ADC->SR & (1 << 1)) {  // Check EOC flag
+        uint16_t value = static_cast<uint16_t>(ADC->DR);
+        if (Adc::user_callback) {
+            Adc::user_callback(value);
         }
+        ADC->SR &= ~(1 << 1);  // Clear EOC flag
         ADC->SR &= ~(1 << 1);  // Clear EOC flag
     }
 }

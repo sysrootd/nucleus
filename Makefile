@@ -1,64 +1,73 @@
 # Toolchain and flags
 CC = arm-none-eabi-g++
+AS = arm-none-eabi-as
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 
 CFLAGS = -mcpu=cortex-m4 -mthumb -g -Wall -std=c++17 \
          -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti
 
-LDFLAGS = -T linker.ld -nostartfiles -nostdlib -nodefaultlibs
+ASFLAGS = -mcpu=cortex-m4 -mthumb
 
-# Directories
-SRC_DIRS := src src/drivers system
+# Linker script and libraries
+LDFLAGS = -T linker.ld -nostartfiles -nodefaultlibs -lc -lgcc
+
+# Directories (added system/cmsis here)
+SRC_DIRS := src system system/cmsis
+
 INCLUDE_DIRS := include include/drivers system system/cmsis
 
-# Include flags
 INCDIRS := $(addprefix -I, $(INCLUDE_DIRS))
 
-# Output directories
 OBJDIR := build
 
-# Find all source files with relative paths
-SRC := $(wildcard $(addsuffix /*.cpp, $(SRC_DIRS)))
+# Source files (recursive wildcard for nested dirs)
+# Use shell find command for recursive search of cpp and s files
 
-# Convert source paths to object paths in build folder, preserving directory structure
-OBJ := $(patsubst %.cpp, $(OBJDIR)/%.o, $(SRC))
+CPP_SRC := $(shell find $(SRC_DIRS) -name '*.cpp')
+ASM_SRC := $(shell find $(SRC_DIRS) -name '*.s')
 
-# Targets
+# Object files with build/ prefix preserving directory structure
+CPP_OBJ := $(patsubst %.cpp,$(OBJDIR)/%.o,$(CPP_SRC))
+ASM_OBJ := $(patsubst %.s,$(OBJDIR)/%.o,$(ASM_SRC))
+OBJ := $(CPP_OBJ) $(ASM_OBJ)
+
+#Remove duplicate .o entries
+OBJ := $(sort $(OBJ))
+
 TARGET = kernal.elf
 BIN = kernal.bin
 LST = kernal.lst
 
-# Default target
 all: $(OBJDIR) $(TARGET)
 
-# Link target
 $(TARGET): $(OBJ)
 	$(CC) $(OBJ) $(LDFLAGS) -o $@
 	$(OBJCOPY) -O binary $@ $(BIN)
 	$(OBJDUMP) -D $@ > $(LST)
 
-# Rule to compile each .cpp file into .o preserving directory structure
+# Compile .cpp files preserving directory structure under build/
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INCDIRS) -c $< -o $@
 
-# Create main build directory
+# Assemble .s files preserving directory structure under build/
+$(OBJDIR)/%.o: %.s
+	@mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS) $< -o $@
+
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
-# Flash the chip
 burn: $(BIN)
 	sleep 1
-	st-flash --reset write $(BIN) 0x08000000 && st-flash reset
-	#st-flash write $(BIN) 0x08000000 && st-flash reset
+	st-flash --reset --connect-under-reset write $(BIN) 0x08000000
 
-# OpenOCD connection
+
 connect: $(TARGET)
 	openocd -f /usr/share/openocd/scripts/interface/stlink-v2.cfg \
 	        -f /usr/share/openocd/scripts/target/stm32f4x.cfg
 
-# Debug with gdb
 debug: $(TARGET)
 	gdb-multiarch $(TARGET) \
 	    -ex "target extended-remote localhost:3333" \
@@ -67,7 +76,6 @@ debug: $(TARGET)
 	    -ex "break main" \
 	    -ex "continue"
 
-# Clean build files
 clean:
 	rm -rf $(OBJDIR) $(TARGET) $(BIN) $(LST)
 

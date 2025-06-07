@@ -1,7 +1,8 @@
 #include "systick.hpp"
 #include "stm32.hpp"
 #include "stm32f401xe.h"
-#include "core_cm4.h"  //__WFI()
+#include "core_cm4.h"  // __WFI()
+#include "sched.hpp"
 
 volatile uint32_t tick_ms = 0;
 
@@ -15,6 +16,7 @@ void SysTick_Init(uint32_t system_clock_hz) {
 
 extern "C" void SysTick_Handler(void) {
     ++tick_ms;
+    Scheduler::tick();  // Also notify the scheduler
 }
 
 void delay_ms(uint32_t ms) {
@@ -23,4 +25,3 @@ void delay_ms(uint32_t ms) {
         __WFI();  // Sleep until SysTick interrupt
     }
 }
-

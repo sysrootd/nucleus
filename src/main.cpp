@@ -3,37 +3,56 @@
 #include "gpio.hpp"
 #include "adc.hpp"
 #include "uart.hpp"
+#include "stm32f401xe.h"
 #include "systick.hpp"
+#include "sched.hpp"
+#include "thread.hpp"
+#include "gpio.hpp"
 
-void adc_callback(uint16_t value) {
-    UART2::uart_printf("ADC Value (Interrupt): %d\r\n", value);
+GPIO gpioB(GPIOB);  // Create instance for GPIOA
+
+void led_task_1() {
+    while (true) {
+        gpioB.toggle(GPIOPin::Pin13);
+        Scheduler::sleep(500);
+    }
 }
 
+void led_task_2() {
+    while (true) {
+        gpioB.toggle(GPIOPin::Pin14);
+        Scheduler::sleep(1000);
+    }
+}
 
-
-
-//-----------------------main------------------------------//
 int main() {
-    // Initialize SysTick (default 16 MHz)
+    // Enable GPIOB clock
+    RCC->AHB1ENR |= (0x01<<1);
+
+    // Configure PA5 and PA6 as output
+    gpioB.set_mode(GPIOPin::Pin13, GPIOMode::Output);
+    gpioB.set_mode(GPIOPin::Pin14, GPIOMode::Output);
+
+    // Initialize SysTick for 1ms tick
     SysTick_Init();
 
-    // Initialize UART2 for printing
-    UART2::init();
+    // Initialize scheduler
+    Scheduler::init();
 
     // Configure PC0 (ADC Channel 10) as analog input
     GPIO gpioC = GPIO(GPIOC);
     GPIO gpioA = GPIO(GPIOA)
     gpioC.set_mode(GPIOPin::Pin0, GPIOMode::Analog);
+    // Create threads
+    static Thread t1(led_task_1, 1);
+    static Thread t2(led_task_2, 1);
 
-    // Initialize ADC1
-    ADC1 adc(ADC);
-    adc.enable();
-    adc.configure_channel(10);         // Channel 10 = PC0
-    adc.set_callback(adc_callback);    // Set ISR callback
-    adc.enable_interrupt();            // Enable EOC interrupt
+    // Add threads to scheduler
+    Scheduler::add_thread(t1.get_tcb());
+    Scheduler::add_thread(t2.get_tcb());
 
-    while (1) {
-        adc.start_conversion();        // Start a conversion
-        delay_ms(1000);                // Delay for readability
-    }
+    // Start the scheduler
+    Scheduler::start();
+
+    while (true);  // Should never be reached
 }

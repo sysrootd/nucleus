@@ -12,27 +12,27 @@ SECTIONS
   .text : 
   {
     KEEP(*(.isr_vector))        /* Interrupt vectors */
-    *(.text)                    /* Code */
+    *(.text)
     *(.text.*)
     *(.init)
     *(.fini)
-    *(.rodata)                  /* Read-only data */
+    *(.rodata)
     *(.rodata.*)
     . = ALIGN(4);
-    _etext = .;                 /* End of text section */
+    _etext = .;
   } > FLASH
 
   /* Initialized data copied from FLASH to SRAM */
-  _la_data = LOADADDR(.data);   /* Load address in FLASH */
+  _sidata = LOADADDR(.data);    /* Source address in FLASH */
 
-  .data : AT(_la_data)
+  .data : 
   {
     _sdata = .;                 /* Start of data section in RAM */
     *(.data)
     *(.data.*)
     . = ALIGN(4);
     _edata = .;                 /* End of data section */
-  } > SRAM
+  } > SRAM AT > FLASH
 
   /* Uninitialized data (zero-initialized) */
   .bss (NOLOAD) :
@@ -47,7 +47,7 @@ SECTIONS
     __bss_end__ = _ebss;
   } > SRAM
 
-  /* Simple heap (optional) */
+  /* Heap region */
   .heap (NOLOAD) :
   {
     _sheap = .;
@@ -55,14 +55,13 @@ SECTIONS
     _eheap = .;
   } > SRAM
 
-  /* Optional: exception index table */
+  /* Exception table */
   .ARM.exidx :
   {
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
   } > FLASH
 
-  /* Provide symbols for end of memory */
+  /* Symbols for memory boundaries */
   PROVIDE(end = _ebss);
   PROVIDE(__end__ = _ebss);
 }
-

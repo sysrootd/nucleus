@@ -23,6 +23,7 @@ public:
     void set_mode(GPIOPin pin, GPIOMode mode);
     void write(GPIOPin pin, bool value);
     bool read(GPIOPin pin);
+    void toggle(GPIOPin pin);
 
 private:
     GPIO_Type* port;
