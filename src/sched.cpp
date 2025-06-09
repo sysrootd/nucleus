@@ -1,6 +1,7 @@
 #include "sched.hpp"
 #include "thread.hpp"
 #include <algorithm>
+#include <cstddef>
 
 ThreadControlBlock* Scheduler::threads[MAX_THREADS] = {nullptr};
 size_t Scheduler::thread_count = 0;
@@ -20,17 +21,9 @@ void Scheduler::add_thread(ThreadControlBlock* thread) {
 }
 
 void Scheduler::start() {
-    if (thread_count == 0) return;
+    current = threads[0];  // Assuming at least one thread was added
 
-    // Pick highest priority READY thread
-    current_index = 0;
-    current = pick_next();
-
-    if (!current) return;
-
-    current->state = ThreadState::RUNNING;
-
-    // Set PSP to current thread SP
+    // Set PSP to thread's stack pointer
     __asm volatile(
         "msr psp, %0\n"
         "movs r0, #2\n"
@@ -38,12 +31,12 @@ void Scheduler::start() {
         "isb\n"
         :
         : "r"(current->sp)
-        : "memory"
+        : "r0", "memory"
     );
 
-    // Start first thread (simulate exception return)
+    // Simulate exception return into thread (using PSP)
     __asm volatile(
-        "mov lr, #0xFFFFFFFD\n"
+        "mov lr, #0xFFFFFFFD\n"  // Return to thread mode, use PSP
         "bx lr\n"
     );
 }

@@ -6,10 +6,12 @@
 #include "stm32f401xe.h"
 #include "stm32.hpp"
 
+
 class Adc {
 public:
-    explicit Adc(ADC_Type* adc);
-    
+    // Constructor: pass ADC1, ADC2,....
+    Adc(ADC_Type* adc_instance);
+
     void enable();
     void disable();
     void configure_channel(uint8_t channel);
@@ -23,9 +25,8 @@ public:
 
     static void (*user_callback)(uint16_t);
 
-
 private:
     ADC_Type* adc;
 };
 
-#endif  // ADC_HPP
+#endif

@@ -1,3 +1,4 @@
+_estack = ORIGIN(SRAM) + LENGTH(SRAM);
 ENTRY(Reset_Handler)
 
 MEMORY
@@ -9,30 +10,31 @@ MEMORY
 SECTIONS
 {
   /* Code and read-only data go to FLASH */
-  .text : 
+  .text :
   {
     KEEP(*(.isr_vector))        /* Interrupt vectors */
-    *(.text)
+    *(.text)                    /* Code */
     *(.text.*)
     *(.init)
     *(.fini)
-    *(.rodata)
+    *(.rodata)                  /* Read-only data */
     *(.rodata.*)
+    KEEP(*(.init_array))        /* C++ global constructors */
     . = ALIGN(4);
-    _etext = .;
+    _etext = .;                 /* End of text section */
   } > FLASH
 
   /* Initialized data copied from FLASH to SRAM */
-  _sidata = LOADADDR(.data);    /* Source address in FLASH */
+  _la_data = LOADADDR(.data);
 
-  .data : 
+  .data : AT(_la_data)
   {
     _sdata = .;                 /* Start of data section in RAM */
     *(.data)
     *(.data.*)
     . = ALIGN(4);
     _edata = .;                 /* End of data section */
-  } > SRAM AT > FLASH
+  } > SRAM
 
   /* Uninitialized data (zero-initialized) */
   .bss (NOLOAD) :
@@ -47,21 +49,21 @@ SECTIONS
     __bss_end__ = _ebss;
   } > SRAM
 
-  /* Heap region */
+  /* Heap (optional) */
   .heap (NOLOAD) :
   {
     _sheap = .;
-    . = . + 0x1000; /* 4 KB heap */
+    . = . + 0x1000;
     _eheap = .;
   } > SRAM
 
-  /* Exception table */
+  /* Exception tables (optional) */
   .ARM.exidx :
   {
     *(.ARM.exidx* .gnu.linkonce.armexidx.*)
   } > FLASH
 
-  /* Symbols for memory boundaries */
+  /* Provide symbols for end of memory */
   PROVIDE(end = _ebss);
   PROVIDE(__end__ = _ebss);
 }

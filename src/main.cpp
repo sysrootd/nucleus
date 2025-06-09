@@ -1,57 +1,47 @@
-//-----------------------include files----------------------//
+#include <cstddef>  // for size_t
 #include "stm32.hpp"
 #include "gpio.hpp"
-#include "adc.hpp"
-#include "uart.hpp"
-#include "stm32f401xe.h"
 #include "systick.hpp"
 #include "sched.hpp"
 #include "thread.hpp"
-#include "gpio.hpp"
 
-GPIO gpioB = GPIO(GPIOB);  // Create instance for GPIOA
+GPIO* gpioB = nullptr;
 
 void led_task_1() {
     while (true) {
-        gpioB.toggle(GPIOPin::Pin13);
+        gpioB->toggle(GPIOPin::Pin13);
         Scheduler::sleep(500);
     }
 }
 
 void led_task_2() {
     while (true) {
-        gpioB.toggle(GPIOPin::Pin14);
+        gpioB->toggle(GPIOPin::Pin14);
         Scheduler::sleep(1000);
     }
 }
 
+constexpr size_t STACK_WORDS = 512;  // 512 * 4B = 2KB
+alignas(8) static uint32_t stack1[STACK_WORDS];
+alignas(8) static uint32_t stack2[STACK_WORDS];
+
 int main() {
-    // Enable GPIOB clock
-    RCC->AHB1ENR |= (0x01<<1);
+    static GPIO gpio(GPIOB);
+    gpioB = &gpio;
 
-    // Configure PA5 and PA6 as output
-    gpioB.set_mode(GPIOPin::Pin13, GPIOMode::Output);
-    gpioB.set_mode(GPIOPin::Pin14, GPIOMode::Output);
+    gpioB->set_mode(GPIOPin::Pin13, GPIOMode::Output);
+    gpioB->set_mode(GPIOPin::Pin14, GPIOMode::Output);
 
-    // Initialize SysTick for 1ms tick
     SysTick_Init();
-
-    // Initialize scheduler
     Scheduler::init();
 
-    // Configure PC0 (ADC Channel 10) as analog input
-    GPIO gpioC = GPIO(GPIOC);
-    gpioC.set_mode(GPIOPin::Pin0, GPIOMode::Analog);
-    // Create threads
-    static Thread t1 = Thread(led_task_1, 1);
-    static Thread t2 = Thread(led_task_2, 1);
+    static Thread t1(led_task_1, 1, stack1, STACK_WORDS);
+    static Thread t2(led_task_2, 1, stack2, STACK_WORDS);
 
-    // Add threads to scheduler
     Scheduler::add_thread(t1.get_tcb());
     Scheduler::add_thread(t2.get_tcb());
 
-    // Start the scheduler
     Scheduler::start();
 
-    while (true);  // Should never be reached
+    while (true);
 }
