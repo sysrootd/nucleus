@@ -61,7 +61,7 @@ $(OBJDIR):
 
 burn: $(BIN)
 	sleep 1
-	st-flash --reset --connect-under-reset write $(BIN) 0x08000000
+	st-flash write $(BIN) 0x08000000
 
 
 connect: $(TARGET)
@@ -73,7 +73,7 @@ debug: $(TARGET)
 	    -ex "target extended-remote localhost:3333" \
 	    -ex "monitor reset halt" \
 	    -ex "load" \
-	    -ex "break main" \
+	    -ex "break Reset_Handler" \
 	    -ex "continue"
 
 clean:

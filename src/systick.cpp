@@ -1,7 +1,7 @@
 #include "systick.hpp"
 #include "stm32.hpp"
 #include "stm32f401xe.h"
-#include "core_cm4.h"  // __WFI()
+#include "core_cm4.h"
 #include "sched.hpp"
 
 volatile uint32_t tick_ms = 0;

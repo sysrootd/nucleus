@@ -2,9 +2,6 @@
 #include "uart.hpp"
 #include <cstdarg>
 
-
-
-
 void UART2::init() {
     RCC->AHB1ENR |= (1 << 0); // GPIOAEN
 

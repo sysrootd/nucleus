@@ -181,7 +181,7 @@ constexpr uintptr_t TIM2_BASE           = APB1PERIPH_BASE + 0x0000UL;
 #define I2C1    ((I2C_Type*) I2C1_BASE)
 #define I2C2    ((I2C_Type*) I2C2_BASE)
 
-#define ADC     ((ADC_Type*) ADC_BASE)
+#define ADC1     ((ADC_Type*) ADC_BASE)
 
 #define SYSCFG  ((SYSCFG_Type*) SYSCFG_BASE)
 

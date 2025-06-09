@@ -1,6 +1,9 @@
 #pragma once
 #include "config.hpp"
 #include "thread.hpp"
+#include "tcb.hpp"
+#include <cstddef>
+
 
 class Scheduler {
 public:
