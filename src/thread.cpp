@@ -60,7 +60,6 @@ Thread::Thread(void (*entry)(void), uint8_t priority, uint32_t* stack_mem, size_
     *(--sp) = 0x01000000;         // xPSR (Thumb bit set, no other special flags)
 
     tcb.sp = sp;  // Set initial stack pointer
-}
 
 ThreadControlBlock* Thread::get_tcb() {
     return &tcb;
@@ -161,4 +160,3 @@ extern "C" {
             : : "r" (old_sp), "r" (new_sp) : "r2"
         );
     }
-}

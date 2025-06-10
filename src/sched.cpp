@@ -53,6 +53,23 @@ void Scheduler::start() {
     while (true) {
         __asm volatile("wfi");
     }
+
+    // Set PSP to thread's stack pointer
+    __asm volatile(
+        "msr psp, %0\n"
+        "movs r0, #2\n"
+        "msr control, r0\n"
+        "isb\n"
+        :
+        : "r"(current->sp)
+        : "r0", "memory"
+    );
+
+    // Simulate exception return into thread (using PSP)
+    __asm volatile(
+        "mov lr, #0xFFFFFFFD\n"  // Return to thread mode, use PSP
+        "bx lr\n"
+    );
 }
 
 void Scheduler::yield() {

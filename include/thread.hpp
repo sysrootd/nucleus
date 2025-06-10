@@ -27,3 +27,5 @@ private:
     static constexpr uint32_t kExcReturnThreadPsp = 0xFFFFFFFD;
     static constexpr uint32_t INITIAL_XPSR = 0x01000000; // Thumb state
 };
+    void setup_stack(void (*entry)(void), uint32_t* stack_top);
+};

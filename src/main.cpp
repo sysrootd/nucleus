@@ -44,4 +44,3 @@ int main() {
     Scheduler::start();
 
     while (true);
-}
