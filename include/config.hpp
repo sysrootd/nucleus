@@ -1,3 +1,3 @@
 #pragma once
 #include <cstdint>
-constexpr uint8_t MAX_THREADS = 8;
+constexpr uint8_t DEFAULT_MAX_THREADS = 8;

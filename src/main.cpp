@@ -1,4 +1,4 @@
-#include <cstddef>  // for size_t
+#include <cstddef>
 #include "stm32.hpp"
 #include "gpio.hpp"
 #include "systick.hpp"
