@@ -1,5 +1,3 @@
-// system/cmsis/cxx_dummy.cpp
-
 extern "C" int __cxa_guard_acquire(volatile int* g) {
     return !*g;
 }
