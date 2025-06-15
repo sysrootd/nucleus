@@ -1,7 +1,8 @@
 #include "stm32.hpp"
 #include "i2c.hpp"
 
-I2C_Driver::I2C_Driver(I2C_Type* i2c, uint8_t device_address): i2c(i2c_), device_address(device_address) {}
+I2C_Driver::I2C_Driver(I2C_Type* i2c, uint8_t device_address)
+    : i2c_(i2c), device_address(device_address) {}
 
 void I2C_Driver::init(SpeedMode mode) {
     if (i2c_ == I2C1) {
@@ -127,7 +128,7 @@ bool I2C_Driver::read_data(uint8_t reg_addr, uint8_t* buffer, size_t len) {
     write(reg_addr);
 
     generate_start();
-    write(device_address | 0x01);
+    write(device_address| 0x01);
 
     for (size_t i = 0; i < len; ++i) {
         buffer[i] = read((i == len - 1) ? AckControl::Disable : AckControl::Enable);
