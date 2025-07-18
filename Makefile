@@ -23,7 +23,6 @@ OBJDIR := build
 
 # Source files (recursive wildcard for nested dirs)
 # Use shell find command for recursive search of cpp and s files
-
 CPP_SRC := $(shell find $(SRC_DIRS) -name '*.cpp')
 ASM_SRC := $(shell find $(SRC_DIRS) -name '*.s')
 
@@ -32,12 +31,12 @@ CPP_OBJ := $(patsubst %.cpp,$(OBJDIR)/%.o,$(CPP_SRC))
 ASM_OBJ := $(patsubst %.s,$(OBJDIR)/%.o,$(ASM_SRC))
 OBJ := $(CPP_OBJ) $(ASM_OBJ)
 
-#Remove duplicate .o entries
+# Remove duplicate .o entries
 OBJ := $(sort $(OBJ))
 
-TARGET = kernal.elf
-BIN = kernal.bin
-LST = kernal.lst
+TARGET = $(OBJDIR)/kernal.elf
+BIN = $(OBJDIR)/kernal.bin
+LST = $(OBJDIR)/kernal.lst
 
 all: $(OBJDIR) $(TARGET)
 
@@ -63,7 +62,6 @@ burn: $(BIN)
 	sleep 1
 	st-flash write $(BIN) 0x08000000
 
-
 connect: $(TARGET)
 	openocd -f /usr/share/openocd/scripts/interface/stlink-v2.cfg \
 	        -f /usr/share/openocd/scripts/target/stm32f4x.cfg
@@ -77,6 +75,6 @@ debug: $(TARGET)
 	    -ex "continue"
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) $(BIN) $(LST)
+	rm -rf $(OBJDIR)
 
 .PHONY: all clean burn connect debug

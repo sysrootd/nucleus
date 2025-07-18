@@ -1,46 +1,77 @@
-# STM32F401RBT6 Bare-Metal Kernel
+# Nucleus RTOS (STM32F401RBT6)
 
-This is a bare-metal kernel project for the STM32F401RBT6 microcontroller. The kernel is written in C++ and designed to run without an operating system, utilizing low-level hardware initialization, interrupt handling, and basic system setup.
+A minimal real-time operating system (RTOS) for the STM32F401RBT6 microcontroller, written in C++. This project demonstrates basic multitasking, GPIO control, and cooperative scheduling on ARM Cortex-M4 MCUs.
 
-## Project Structure
+## Features
 
-- **src/**: Contains C++ source files for the kernel.
-- **include/**: Header files for kernel and drivers.
-- **system/**: System initialization files (CMSIS, startup code, etc.).
-- **build/**: Contains compiled object files, ELF, and BIN files.
-- **linker.ld**: Custom memory layout for the STM32F401RBT6.
-- **Makefile**: Build system for compiling and linking the project.
+- Cooperative thread scheduler
+- Thread stack management
+- SysTick-based timing
+- GPIO abstraction for STM32
+- Example: Blinking two LEDs with different periods
 
-## Setup
+## Directory Structure
 
-Ensure you have the necessary tools installed:
-- **arm-none-eabi-gcc** (for compiling and linking)
-- **OpenOCD** (for flashing the STM32F401RBT6)
-- **GDB** (for debugging)
+```
+nucleus/
+├── src/           # Source code
+├── include/       # Header files
+├── build/         # Build output (created after compilation)
+├── system/        # CMSIS and device files
+├── .vscode/       # VS Code configuration (tasks, launch, settings)
+├── Makefile       # Build script
+└── README.md
+```
 
-## Building the Project
+## Requirements
 
-1. Clone the repository and navigate to the project directory.
-2. Run `make` to build the project.
-3. The output will be in `build/kernal.elf` and `build/kernal.bin`.
+- STM32F401RBT6 board (or compatible STM32F4)
+- ARM GCC toolchain (`arm-none-eabi-gcc`)
+- Make
+- OpenOCD
+- ST-Link programmer/debugger
+- [Cortex-Debug VS Code extension](https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug)
 
-## Flashing the Microcontroller
+## Building
 
-Use OpenOCD or STM32CubeProgrammer to flash the `.bin` file to the STM32F401RBT6.
+From the project root, run:
+```sh
+make
+```
+This will generate `build/kernal.elf` and `build/kernal.bin`.
 
-Example:
-```bash
-openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c "program build/kernal.bin verify reset exit"
+To clean:
+```sh
+make clean
+```
 
-openocd -f interface/stlink.cfg -f target/stm32f4x.cfg arm-none-eabi-gdb build/kernal.elf
+## Flashing
 
-### Step 4: Flashing and Debugging
+Use OpenOCD and ST-Link to flash the binary:
+```sh
+openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c "program build/kernal.elf verify reset exit"
+```
 
-Once your code is built, you'll want to flash it to your STM32F401RBT6 board using **OpenOCD** or **STM32CubeProgrammer**.
+## Debugging
 
-Example command for **OpenOCD**:
+1. Install the **Cortex-Debug** extension in VS Code.
+2. Connect your ST-Link to the board.
+3. Press `F5` or select **Run > Start Debugging** in VS Code.
 
-```bash
-openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c "program build/kernal.bin verify reset exit"
+## Example Application
 
-openocd -f interface/stlink.cfg -f target/stm32f4x.cfg arm-none-eabi-gdb build/kernal.elf
+The default application blinks two LEDs on GPIOB pins 13 and 14 at different rates using two threads.
+
+## VS Code Integration
+
+- `.vscode/tasks.json`: Build and clean tasks
+- `.vscode/launch.json`: Debug configuration for STM32F401RBT6 with OpenOCD
+- `.vscode/settings.json`: Toolchain and file association settings
+
+## License
+
+MIT License
+
+---
+
+**Note:** Adjust pin numbers and device files as needed for your specific
