@@ -58,10 +58,6 @@ openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c "program build/kernal.
 2. Connect your ST-Link to the board.
 3. Press `F5` or select **Run > Start Debugging** in VS Code.
 
-## Example Application
-
-The default application blinks two LEDs on GPIOB pins 13 and 14 at different rates using two threads.
-
 ## VS Code Integration
 
 - `.vscode/tasks.json`: Build and clean tasks
