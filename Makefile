@@ -60,7 +60,7 @@ $(OBJDIR):
 
 burn: $(BIN)
 	sleep 1
-	st-flash write $(BIN) 0x08000000
+	st-flash --connect-under-reset write $(BIN) 0x08000000
 
 connect: $(TARGET)
 	openocd -f /usr/share/openocd/scripts/interface/stlink-v2.cfg \
