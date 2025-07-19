@@ -1,6 +1,7 @@
 #include "thread.hpp"
 #include "sched.hpp"
 #include "stm32.hpp"
+#include "stm32f401xe.h"
 #include <cstdint>
 
 // Trap for threads that return
@@ -27,6 +28,14 @@ Thread::Thread(void (*entry)(void), uint8_t priority, uint32_t *stack_mem,
 
 void Thread::initialize_stack(void (*entry)(void), uint32_t *stack_top) {
   uint32_t *sp = stack_top;
+
+  uint32_t entry_val = reinterpret_cast<uint32_t>(entry);
+  if (entry_val < 0x08000000 || entry_val >= 0x08080000 ||
+      (entry_val & 1) == 0) {
+    *((volatile uint32_t *)0x40020400) |= (1 << 28); // RED LED
+    while (true)
+      ;
+  }
 
   // Hardware-saved registers on exception return
   *(--sp) = 0x01000000; // xPSR (Thumb bit set)
@@ -55,22 +64,21 @@ void Thread::initialize_stack(void (*entry)(void), uint32_t *stack_top) {
 ThreadControlBlock *Thread::get_tcb() { return &tcb; }
 
 extern "C" void thread_exit_trap() {
-  while (true) {
-    // Trap if thread exits unexpectedly
-  }
+  while (true)
+    ;
 }
 
-// First-time launch into thread
 extern "C" void thread_launch(uint32_t *sp) {
-  // *((volatile uint32_t*)0x40020400) |= (1 << 26);
-  __asm volatile("msr psp, r0         \n" // Load Process Stack Pointer
-                 "movs r0, #2         \n" // CONTROL = 2 (use PSP, unprivileged)
+  __asm volatile("msr psp, r0         \n"
+                 "movs r0, #1         \n" // CONTROL = 1 → PSP + privileged
                  "msr control, r0     \n"
                  "isb                 \n"
-
-                 "pop {r4-r11}        \n" // Restore software-saved context
-
-                 "ldr lr, =0xFFFFFFFD \n" // Return to Thread mode using PSP
+                 "pop {r4-r11}        \n"
+                 "ldr r0, =0x40020400     \n"
+                 "ldr r1, [r0]            \n"
+                 "orr r1, r1, #(1 << 26)  \n" // turn on RED
+                 "str r1, [r0]            \n"
+                 "ldr lr, =0xFFFFFFFD \n"
                  "bx lr               \n");
 }
 
@@ -87,4 +95,16 @@ extern "C" void context_switch(uint32_t **old_sp, uint32_t *new_sp) {
                  :
                  : "r"(old_sp), "r"(new_sp)
                  : "r2", "memory");
+}
+
+extern "C" void HardFault_Handler(void) {
+  // Capture fault status registers
+  volatile uint32_t CFSR = SCB->CFSR;   // Configurable Fault Status Register
+  volatile uint32_t HFSR = SCB->HFSR;   // HardFault Status Register
+  volatile uint32_t MMFAR = SCB->MMFAR; // MemManage Fault Address Register
+  volatile uint32_t BFAR = SCB->BFAR;   // BusFault Address Register
+
+  while (true) {
+    __asm volatile("nop");
+  }
 }
