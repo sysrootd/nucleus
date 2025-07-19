@@ -1,5 +1,4 @@
 #include "systick.hpp"
-#include "core_cm4.h"
 #include "sched.hpp"
 #include "stm32.hpp"
 #include "stm32f401xe.h"
@@ -22,6 +21,6 @@ extern "C" void SysTick_Handler(void) {
 void delay_ms(uint32_t ms) {
   uint32_t start = tick_ms;
   while ((tick_ms - start) < ms) {
-    __WFI(); // Sleep until SysTick interrupt
+    __WFI();
   }
 }

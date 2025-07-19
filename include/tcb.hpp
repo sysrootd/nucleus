@@ -14,24 +14,15 @@ enum class ThreadState : uint8_t {
 
 // Thread Control Block structure
 struct ThreadControlBlock {
-  // Execution context
-  uint32_t *sp; // Current stack pointer
-
-  // Thread metadata
-  uint8_t priority;  // Thread priority (0 = highest)
-  ThreadState state; // Current thread state
-
-  // Stack information
+  uint32_t *sp;         // Current stack pointer
+  uint8_t priority;     // Thread priority (0 = highest)
+  ThreadState state;    // Current thread state
   uint32_t *stack_base; // Base address of stack
-  size_t stack_size;    // Stack size in bytes
-
-  // Sleep/timing control
+  size_t stack_size;    // Stack size in words (NOT bytes)
   uint32_t sleep_ticks; // Remaining sleep ticks
-
-// For debugging/performance monitoring
 #ifdef THREAD_DEBUG
-  const char *name; // Thread name for debugging
-  uint32_t runtime; // CPU time used (in ticks)
+  const char *name;
+  uint32_t runtime;
 #endif
 };
 

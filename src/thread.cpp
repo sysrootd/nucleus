@@ -39,25 +39,26 @@ Thread::Thread(void (*entry)(void), uint8_t priority, uint32_t *stack_mem,
   // Ensure 8-byte alignment (Cortex-M requirement)
   sp = (uint32_t *)((uintptr_t)sp & ~0x7UL);
 
-  // Additional registers that get saved during context switch (R4-R11)
-  *(--sp) = 0x04040404; // R4
-  *(--sp) = 0x05050505; // R5
-  *(--sp) = 0x06060606; // R6
-  *(--sp) = 0x07070707; // R7
-  *(--sp) = 0x08080808; // R8
-  *(--sp) = 0x09090909; // R9
-  *(--sp) = 0x10101010; // R10
-  *(--sp) = 0x11111111; // R11
+  // Push software-saved registers (R4-R11) for context switch
+  *(--sp) = 0x08080808; // R11
+  *(--sp) = 0x07070707; // R10
+  *(--sp) = 0x06060606; // R9
+  *(--sp) = 0x05050505; // R8
+  *(--sp) = 0x04040404; // R7
+  *(--sp) = 0x03030303; // R6
+  *(--sp) = 0x02020202; // R5
+  *(--sp) = 0x01010101; // R4
 
-  // Exception stack frame (auto-pushed by hardware)
-  *(--sp) = 0x00000000;            // R0
-  *(--sp) = 0x01010101;            // R1
-  *(--sp) = 0x02020202;            // R2
-  *(--sp) = 0x03030303;            // R3
+  // Push exception frame (hardware-popped on exception return)
+  // Order: xPSR, PC, LR, R12, R3, R2, R1, R0
+  *(--sp) = 0x01000000;            // xPSR (Thumb bit set)
+  *(--sp) = ((uint32_t)entry) | 1; // PC (entry point, Thumb)
+  *(--sp) = 0xFFFFFFFD;            // LR (EXC_RETURN)
   *(--sp) = 0x12121212;            // R12
-  *(--sp) = 0xFFFFFFFD;            // LR (EXC_RETURN: thread mode, PSP, no FPU)
-  *(--sp) = ((uint32_t)entry) | 1; // PC (entry point with Thumb bit set)
-  *(--sp) = 0x01000000; // xPSR (Thumb bit set, no other special flags)
+  *(--sp) = 0x03030303;            // R3
+  *(--sp) = 0x02020202;            // R2
+  *(--sp) = 0x01010101;            // R1
+  *(--sp) = 0x00000000;            // R0
 
   tcb.sp = sp; // Set initial stack pointer
 }
@@ -124,26 +125,21 @@ extern "C" __attribute__((naked)) void HardFault_Handler(void) {
 
 // Assembly implementations (should be in a separate .S file, but included here
 // for completeness)
-extern "C" {
-void thread_launch(uint32_t *sp) {
+extern "C" void thread_launch(uint32_t *sp) {
   __asm volatile(
       "msr psp, %0         \n" // Set process stack pointer
-      "mov r0, #3          \n" // Switch to unprivileged thread mode with PSP
+      "movs r0, #2         \n" // Use PSP, unprivileged
       "msr control, r0     \n"
-      "isb                  \n" // Instruction sync barrier
-
-      // Pop the registers we pushed in Thread constructor
-      "pop {r4-r11}         \n" // Restore R4-R11
-
-      // The following will be automatically popped by exception return:
-      // r0-r3, r12, lr, pc, psr
-
-      "bx lr                \n" // Should never reach here
+      "isb                 \n"
+      "mov lr, %1          \n" // EXC_RETURN: thread mode, PSP, no FPU
+      "bx lr               \n" // Exception return: pops exception frame, starts
+                               // thread
       :
-      : "r"(sp));
+      : "r"(sp), "r"(0xFFFFFFFD)
+      : "r0");
 }
 
-void context_switch(uint32_t **old_sp, uint32_t *new_sp) {
+extern "C" void context_switch(uint32_t **old_sp, uint32_t *new_sp) {
   __asm volatile(
       // Save current context (R4-R11)
       "mrs r2, psp          \n" // Get current PSP
@@ -159,6 +155,5 @@ void context_switch(uint32_t **old_sp, uint32_t *new_sp) {
       "bx lr                \n"
       :
       : "r"(old_sp), "r"(new_sp)
-      : "r2");
-}
+      :);
 }

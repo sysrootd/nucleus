@@ -9,15 +9,19 @@ GPIO *gpioB = nullptr;
 
 void led_task_1() {
   while (true) {
-    gpioB->toggle(GPIOPin::Pin13);
-    Scheduler::sleep(500);
+    if (gpioB) {
+      gpioB->toggle(GPIOPin::Pin13);
+      Scheduler::sleep(500);
+    }
   }
 }
 
 void led_task_2() {
   while (true) {
-    gpioB->toggle(GPIOPin::Pin14);
-    Scheduler::sleep(1000);
+    if (gpioB) {
+      gpioB->toggle(GPIOPin::Pin14);
+      Scheduler::sleep(1000);
+    }
   }
 }
 
@@ -32,8 +36,9 @@ int main() {
   SysTick_Init();
   Scheduler::init();
 
-  static Thread t1(led_task_1, 1, &stack1[STACK_WORDS - 1], STACK_WORDS);
-  static Thread t2(led_task_2, 1, &stack2[STACK_WORDS - 1], STACK_WORDS);
+  // Pass the base of the stack
+  static Thread t1(led_task_1, 1, stack1, STACK_WORDS);
+  static Thread t2(led_task_2, 1, stack2, STACK_WORDS);
 
   Scheduler::add_thread(t1.get_tcb());
   Scheduler::add_thread(t2.get_tcb());

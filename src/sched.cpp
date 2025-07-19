@@ -1,5 +1,4 @@
 #include "sched.hpp"
-#include "core_cm4.h"
 #include "stm32.hpp"
 #include "stm32f401xe.h"
 #include "thread.hpp"
@@ -48,8 +47,8 @@ void Scheduler::start() {
   current = threads[0];
   current->state = ThreadState::RUNNING;
 
-  // Trigger PendSV to perform the first context switch
-  SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+  // Start the first thread directly
+  thread_launch(current->sp);
 
   // Execution will continue in PendSV_Handler
   while (true) {

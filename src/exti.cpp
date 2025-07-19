@@ -1,5 +1,4 @@
 #include "exti.hpp"
-#include "core_cm4.h" // CMSIS core header using IRQn_Type
 #include "stm32.hpp"
 #include "stm32f401xe.h" // defines IRQn_Type and interrupt numbers
 
