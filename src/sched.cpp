@@ -14,10 +14,12 @@ size_t Scheduler::current_index = 0;
 extern "C" {
 void thread_launch(uint32_t *sp);
 void context_switch(uint32_t **old_sp, uint32_t *new_sp);
+
+// Wrapper to access pick_next from assembly
+ThreadControlBlock *scheduler_pick_next() { return Scheduler::pick_next(); }
 }
 
 void Scheduler::init() {
-  // Reset all scheduler state
   for (size_t i = 0; i < MAX_THREADS; i++) {
     threads[i] = nullptr;
   }
@@ -25,7 +27,6 @@ void Scheduler::init() {
   current = nullptr;
   current_index = 0;
 
-  // Configure PendSV to lowest priority
   NVIC_SetPriority(PendSV_IRQn, 0xFF);
 }
 
@@ -33,7 +34,6 @@ void Scheduler::add_thread(ThreadControlBlock *thread) {
   if (thread_count >= MAX_THREADS)
     return;
 
-  // Initialize thread state
   thread->state = ThreadState::READY;
   thread->sleep_ticks = 0;
 
@@ -46,14 +46,10 @@ void Scheduler::start() {
 
   current = threads[0];
   current->state = ThreadState::RUNNING;
-
-  // Start the first thread directly
   thread_launch(current->sp);
 
-  // Execution will continue in PendSV_Handler
-  while (true) {
+  while (true)
     __asm volatile("wfi");
-  }
 }
 
 void Scheduler::yield() {
@@ -89,11 +85,10 @@ void Scheduler::tick() {
 
 ThreadControlBlock *Scheduler::pick_next() {
   ThreadControlBlock *best = nullptr;
-  uint8_t best_priority = 255; // Lower number = higher priority
+  uint8_t best_priority = 255;
 
   for (size_t i = 0; i < thread_count; ++i) {
-    size_t idx =
-        (current_index + i + 1) % thread_count; // Round-robin within priorities
+    size_t idx = (current_index + i + 1) % thread_count;
     ThreadControlBlock *tcb = threads[idx];
 
     if (tcb->state == ThreadState::READY && tcb->priority <= best_priority) {
@@ -103,7 +98,7 @@ ThreadControlBlock *Scheduler::pick_next() {
     }
   }
 
-  return best ? best : current; // Fallback to current if none found
+  return best ? best : current;
 }
 
 void Scheduler::switch_to(ThreadControlBlock *next) {
@@ -116,35 +111,31 @@ void Scheduler::switch_to(ThreadControlBlock *next) {
   current = next;
   current->state = ThreadState::RUNNING;
 
-  // Perform the actual context switch
   context_switch(&prev->sp, current->sp);
 }
 
-// PendSV Handler - must be naked to prevent unwanted prologue/epilogue
+// PendSV Handler - performs context switch
 extern "C" __attribute__((naked)) void PendSV_Handler(void) {
-  __asm volatile(
-      "cpsid i                 \n" // Disable interrupts
-      "mrs r0, psp             \n" // Get current thread's stack pointer
+  __asm volatile("cpsid i                 \n"
+                 "mrs r0, psp             \n"
+                 "stmdb r0!, {r4-r11}     \n"
 
-      // Save current context (R4-R11)
-      "stmdb r0!, {r4-r11}     \n"
+                 "ldr r1, =_ZN9Scheduler7currentE \n"
+                 "ldr r2, [r1]            \n"
+                 "str r0, [r2]            \n" // Save SP to current->sp
 
-      // Store current SP
-      "ldr r2, =_ZN9Scheduler7currentE \n"
-      "ldr r1, [r2]            \n"
-      "str r0, [r1]            \n"
+                 // Call scheduler_pick_next() and store to current
+                 "bl scheduler_pick_next  \n"
+                 "ldr r1, =_ZN9Scheduler7currentE \n"
+                 "str r0, [r1]            \n"
 
-      // Load next thread's SP
-      "ldr r1, [r2]            \n" // Reload current (now points to next)
-      "ldr r0, [r1]            \n" // Get next thread's SP
+                 // Load SP of next thread
+                 "ldr r2, [r0]            \n"
 
-      // Restore next context
-      "ldmia r0!, {r4-r11}     \n"
+                 // Restore R4–R11
+                 "ldmia r2!, {r4-r11}     \n"
+                 "msr psp, r2             \n"
 
-      // Update PSP
-      "msr psp, r0              \n"
-
-      // Enable interrupts and return
-      "cpsie i                 \n"
-      "bx lr                   \n");
+                 "cpsie i                 \n"
+                 "bx lr                   \n");
 }

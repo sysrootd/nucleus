@@ -21,8 +21,6 @@ public:
   // Thread information (for internal use)
   static ThreadControlBlock *get_current() { return current; }
   static size_t get_thread_count() { return thread_count; }
-
-private:
   // Scheduling algorithm
   static ThreadControlBlock *pick_next();          // Select next thread to run
   static void switch_to(ThreadControlBlock *next); // Perform context switch

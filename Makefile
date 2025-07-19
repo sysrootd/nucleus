@@ -71,7 +71,7 @@ debug: $(TARGET)
 	    -ex "target extended-remote localhost:3333" \
 	    -ex "monitor reset halt" \
 	    -ex "load" \
-	    -ex "break Reset_Handler" \
+	    -ex "break main" \
 	    -ex "continue"
 
 clean:

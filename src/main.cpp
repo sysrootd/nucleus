@@ -10,8 +10,8 @@ GPIO *gpioB = nullptr;
 void led_task_1() {
   while (true) {
     if (gpioB) {
-      gpioB->toggle(GPIOPin::Pin13);
-      Scheduler::sleep(500);
+      gpioB->write(GPIOPin::Pin13, true);
+      // Scheduler::sleep(500);
     }
   }
 }
@@ -19,13 +19,13 @@ void led_task_1() {
 void led_task_2() {
   while (true) {
     if (gpioB) {
-      gpioB->toggle(GPIOPin::Pin14);
-      Scheduler::sleep(1000);
+      gpioB->write(GPIOPin::Pin14, true);
+      // Scheduler::sleep(1000);
     }
   }
 }
 
-constexpr size_t STACK_WORDS = 512; // 512 * 4B = 2KB
+constexpr size_t STACK_WORDS = 512; // 512 words = 2048 bytes (2KB) stack size
 alignas(8) static uint32_t stack1[STACK_WORDS];
 alignas(8) static uint32_t stack2[STACK_WORDS];
 
