@@ -5,13 +5,6 @@
 #include "thread.hpp"
 #include <cstddef>
 
-#include "gpio.hpp"
-#include "sched.hpp"
-#include "stm32.hpp"
-#include "systick.hpp"
-#include "thread.hpp"
-#include <cstddef>
-
 GPIO *gpioB = nullptr;
 
 // Forward declarations
@@ -29,7 +22,6 @@ int main() {
   SysTick_Init();
   Scheduler::init();
 
-  // 🔍 Debug: Check entry addresses
   volatile uint32_t t1_addr = reinterpret_cast<uint32_t>(led_task_1);
   volatile uint32_t t2_addr = reinterpret_cast<uint32_t>(led_task_2);
 

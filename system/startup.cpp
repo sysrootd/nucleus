@@ -188,7 +188,6 @@ extern "C" void Reset_Handler() {
   // Call main
   main();
 
-  // Hang if main ever returns
   while (1)
     ;
 }

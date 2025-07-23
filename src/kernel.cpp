@@ -10,7 +10,5 @@ void kernel_main() {
     UART2::transmit(*msg++); // Transmit one character at a time
   }
 
-  while (1) {
-    // Main loop
-  }
+  while (true);
 }
