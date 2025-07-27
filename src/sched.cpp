@@ -46,6 +46,16 @@ void Scheduler::start() {
 
   current = threads[0];
   current->state = ThreadState::RUNNING;
+
+  // Diagnostic check
+  if ((reinterpret_cast<uint32_t>(current->sp) < 0x20000000) ||
+      (reinterpret_cast<uint32_t>(current->sp) > 0x20020000)) {
+    *((volatile uint32_t *)0x40020400) |=
+        (1 << 28); // Turn on GPIO pin for error
+    while (1)
+      ;
+  }
+
   thread_launch(current->sp);
 
   while (true)

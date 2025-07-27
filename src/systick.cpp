@@ -15,12 +15,15 @@ void SysTick_Init(uint32_t system_clock_hz) {
 
 extern "C" void SysTick_Handler(void) {
   ++tick_ms;
-  Scheduler::tick(); // Also notify the scheduler
+  Scheduler::tick(); // Update sleep timers and wake sleeping threads
+
+  // Trigger context switch after tick update
+  SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
 }
 
 void delay_ms(uint32_t ms) {
   uint32_t start = tick_ms;
   while ((tick_ms - start) < ms) {
-    __WFI();
+    __WFI(); // Wait for interrupt
   }
 }
