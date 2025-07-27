@@ -8,20 +8,23 @@ A minimal real-time operating system (RTOS) for the STM32F401RBT6 microcontrolle
 - Thread stack management
 - SysTick-based timing
 - GPIO abstraction for STM32
-- Example: Blinking two LEDs with different periods
 
 ## Directory Structure
 
-```
 nucleus/
-├── src/           # Source code
-├── include/       # Header files
-├── build/         # Build output (created after compilation)
-├── system/        # CMSIS and device files
-├── .vscode/       # VS Code configuration (tasks, launch, settings)
-├── Makefile       # Build script
+├── src/ # Source code
+├── include/ # Header files
+├── build/ # Build output (created after compilation)
+├── system/ # CMSIS and device files
+├── tools/ # Code quality tools
+│ ├── run-clang-format.py
+│ └── run-clang-tidy.py
+├── .vscode/ # VS Code configuration
+├── Makefile # Build script
+├── CMakeLists.txt
 └── README.md
-```
+text
+
 
 ## Requirements
 
@@ -37,37 +40,104 @@ nucleus/
 From the project root, run:
 ```sh
 make
-```
-This will generate `build/kernal.elf` and `build/kernal.bin`.
+
+This will generate build/kernal.elf and build/kernal.bin.
 
 To clean:
-```sh
-make clean
-```
+sh
 
-## Flashing
+make clean
+
+Flashing
 
 Use OpenOCD and ST-Link to flash the binary:
-```sh
+sh
+
 openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c "program build/kernal.elf verify reset exit"
-```
 
-## Debugging
+Debugging
 
-1. Install the **Cortex-Debug** extension in VS Code.
-2. Connect your ST-Link to the board.
-3. Press `F5` or select **Run > Start Debugging** in VS Code.
+    Install the Cortex-Debug extension in VS Code
 
-## VS Code Integration
+    Connect your ST-Link to the board
 
-- `.vscode/tasks.json`: Build and clean tasks
-- `.vscode/launch.json`: Debug configuration for STM32F401RBT6 with OpenOCD
-- `.vscode/settings.json`: Toolchain and file association settings
+    Press F5 or select Run > Start Debugging in VS Code
 
-## License
+Code Formatting & Static Analysis
+Prerequisites
+bash
 
+# Ubuntu/Debian
+sudo apt-get install clang-format clang-tidy
+
+# macOS (Homebrew)
+brew install llvm
+export PATH="$(brew --prefix llvm)/bin:$PATH"
+
+Formatting Commands
+
+Format all source files (run from project root):
+bash
+
+python3 tools/run-clang-format.py -i -r --style=LLVM ./src ./include
+
+Static Analysis
+
+First generate compilation database:
+bash
+
+cd build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. && cd ..
+
+Then run clang-tidy:
+bash
+
+python3 tools/run-clang-tidy.py -p ./build ./src ./include
+
+Recommended Checks
+
+For embedded development, consider these checks:
+bash
+
+-checks='-*,modernize-*,bugprone-*,readability-*,misc-*,-modernize-use-trailing-return-type'
+
+VS Code Integration
+
+Add to .vscode/settings.json:
+json
+
+{
+  "editor.formatOnSave": true,
+  "C_Cpp.clang_format_path": "clang-format",
+  "C_Cpp.clang_format_style": "LLVM",
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+  "C_Cpp.codeAnalysis.clangTidy.path": "clang-tidy"
+}
+
+VS Code Configuration
+
+    .vscode/tasks.json: Build and clean tasks
+
+    .vscode/launch.json: Debug configuration for STM32F401RBT6 with OpenOCD
+
+    .vscode/settings.json: Toolchain and file association settings
 MIT License
 
----
+Copyright (c) 2025
 
-**Note:** Adjust pin numbers and device files as needed for your specific
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the “Software”), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
