@@ -1,6 +1,6 @@
-# Nucleus RTOS (STM32F401RBT6)
+# Nucleus RTOS (STM32F401x)
 
-A minimal real-time operating system (RTOS) for the STM32F401RBT6 microcontroller, written in C++. This project demonstrates basic multitasking, GPIO control, and cooperative scheduling on ARM Cortex-M4 MCUs.
+A minimal real-time operating system (RTOS) for the STM32F401x microcontrollers, written in C++. This project demonstrates basic multitasking, GPIO control, and cooperative scheduling on ARM Cortex-M4 MCUs.
 
 ## Features
 
@@ -28,7 +28,7 @@ text
 
 ## Requirements
 
-- STM32F401RBT6 board (or compatible STM32F4)
+- STM32F401x board (or compatible STM32F4)
 - ARM GCC toolchain (`arm-none-eabi-gcc`)
 - Make
 - OpenOCD
@@ -69,10 +69,6 @@ bash
 
 # Ubuntu/Debian
 sudo apt-get install clang-format clang-tidy
-
-# macOS (Homebrew)
-brew install llvm
-export PATH="$(brew --prefix llvm)/bin:$PATH"
 
 Formatting Commands
 
