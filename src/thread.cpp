@@ -98,12 +98,6 @@ extern "C" void context_switch(uint32_t **old_sp, uint32_t *new_sp) {
 }
 
 extern "C" void HardFault_Handler(void) {
-  // Capture fault status registers
-  volatile uint32_t CFSR = SCB->CFSR;   // Configurable Fault Status Register
-  volatile uint32_t HFSR = SCB->HFSR;   // HardFault Status Register
-  volatile uint32_t MMFAR = SCB->MMFAR; // MemManage Fault Address Register
-  volatile uint32_t BFAR = SCB->BFAR;   // BusFault Address Register
-
   while (true) {
     __asm volatile("nop");
   }
