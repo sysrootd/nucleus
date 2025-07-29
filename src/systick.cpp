@@ -24,6 +24,6 @@ extern "C" void SysTick_Handler(void) {
 void delay_ms(uint32_t ms) {
   uint32_t start = tick_ms;
   while ((tick_ms - start) < ms) {
-    __WFI(); // Wait for interrupt
+    __WFI();
   }
 }

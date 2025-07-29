@@ -1,68 +1,48 @@
-#include "gpio.hpp"
 #include "sched.hpp"
-#include "stm32.hpp"
-#include "systick.hpp"
 #include "thread.hpp"
-#include <cstddef>
+#include "gpio.hpp"
+#include "stm32f401xe.h"
 
-GPIO *gpioB = nullptr;
+// ----- Task 1 -----
+void led_task_1() {
+    GPIO led1(GPIOB);
+    led1.set_mode(GPIOPin::Pin13, GPIOMode::Output);
 
-// Forward declarations
-void led_task_1();
-void led_task_2();
+    while (true) {
+        led1.toggle(GPIOPin::Pin13);
+        for (volatile int i = 0; i < 100000; ++i);
+        Scheduler::yield();
+    }
+}
 
-constexpr size_t STACK_WORDS = 512;
-alignas(8) static uint32_t stack1[STACK_WORDS];
-alignas(8) static uint32_t stack2[STACK_WORDS];
+// ----- Task 2 -----
+void led_task_2() {
+    GPIO led2(GPIOB);
+    led2.set_mode(GPIOPin::Pin14, GPIOMode::Output);
+
+    while (true) {
+        led2.toggle(GPIOPin::Pin14);
+        for (volatile int i = 0; i < 100000; ++i);
+        Scheduler::yield();
+    }
+}
+
+// ----- Stacks -----
+static uint32_t stack1[128];
+static uint32_t stack2[128];
 
 int main() {
-  static GPIO gpio(GPIOB);
-  gpioB = &gpio;
+    Scheduler::init();
 
-  SysTick_Init();
-  Scheduler::init();
+    Thread t1(led_task_1, 1, stack1, 128);
+    Thread t2(led_task_2, 1, stack2, 128);
 
-  volatile uint32_t t1_addr = reinterpret_cast<uint32_t>(led_task_1);
-  volatile uint32_t t2_addr = reinterpret_cast<uint32_t>(led_task_2);
+    Scheduler::add_thread(t1.get_tcb());
+    Scheduler::add_thread(t2.get_tcb());
 
-  if (t1_addr < 0x08000000 || t1_addr > 0x08080000) {
-    *((volatile uint32_t *)0x40020400) |= (1 << 28); // signal t1 invalid
-    while (true)
-      ;
-  }
+    Scheduler::start();
 
-  if (t2_addr < 0x08000000 || t2_addr > 0x08080000) {
-    *((volatile uint32_t *)0x40020400) |= (1 << 26); // signal t2 invalid
-    while (true)
-      ;
-  }
-
-  static Thread t1(led_task_1, 1, stack1, STACK_WORDS);
-  static Thread t2(led_task_2, 1, stack2, STACK_WORDS);
-
-  Scheduler::add_thread(t1.get_tcb());
-  Scheduler::add_thread(t2.get_tcb());
-
-  Scheduler::start();
-
-  while (true)
-    ;
-}
-
-void led_task_1() {
-  while (true) {
-    if (gpioB) {
-      gpioB->toggle(GPIOPin::Pin13);
-      Scheduler::sleep(500);
+    while (1) {
+        __asm volatile("wfi");
     }
-  }
-}
-
-void led_task_2() {
-  while (true) {
-    if (gpioB) {
-      gpioB->toggle(GPIOPin::Pin14);
-      Scheduler::sleep(1000);
-    }
-  }
 }

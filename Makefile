@@ -12,27 +12,22 @@ ASFLAGS = -mcpu=cortex-m4 -mthumb
 # Linker script and libraries
 LDFLAGS = -T linker.ld -nostartfiles -nodefaultlibs -lc -lgcc
 
-# Directories (added system/cmsis here)
+# Directories
 SRC_DIRS := src system system/cmsis
-
 INCLUDE_DIRS := include include/drivers system system/cmsis
-
 INCDIRS := $(addprefix -I, $(INCLUDE_DIRS))
 
 OBJDIR := build
 
-# Source files (recursive wildcard for nested dirs)
-# Use shell find command for recursive search of cpp and s files
+# Source files
 CPP_SRC := $(shell find $(SRC_DIRS) -name '*.cpp')
-ASM_SRC := $(shell find $(SRC_DIRS) -name '*.s')
+ASM_SRC := $(shell find $(SRC_DIRS) \( -name '*.s' -o -name '*.asm' \))
 
-# Object files with build/ prefix preserving directory structure
+# Object files
 CPP_OBJ := $(patsubst %.cpp,$(OBJDIR)/%.o,$(CPP_SRC))
-ASM_OBJ := $(patsubst %.s,$(OBJDIR)/%.o,$(ASM_SRC))
-OBJ := $(CPP_OBJ) $(ASM_OBJ)
-
-# Remove duplicate .o entries
-OBJ := $(sort $(OBJ))
+ASM_OBJ := $(patsubst %.s,$(OBJDIR)/%.o,$(filter %.s,$(ASM_SRC)))
+ASM_OBJ += $(patsubst %.asm,$(OBJDIR)/%.o,$(filter %.asm,$(ASM_SRC)))
+OBJ := $(sort $(CPP_OBJ) $(ASM_OBJ))
 
 TARGET = $(OBJDIR)/kernal.elf
 BIN = $(OBJDIR)/kernal.bin
@@ -45,13 +40,18 @@ $(TARGET): $(OBJ)
 	$(OBJCOPY) -O binary $@ $(BIN)
 	$(OBJDUMP) -D $@ > $(LST)
 
-# Compile .cpp files preserving directory structure under build/
+# Compile .cpp files
 $(OBJDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INCDIRS) -c $< -o $@
 
-# Assemble .s files preserving directory structure under build/
+# Assemble .s files
 $(OBJDIR)/%.o: %.s
+	@mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS) $< -o $@
+
+# Assemble .asm files
+$(OBJDIR)/%.o: %.asm
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) $< -o $@
 
