@@ -67,6 +67,8 @@ Code Formatting & Static Analysis
 Prerequisites
 bash
 
+## Formatting
+
 # Ubuntu/Debian
 sudo apt-get install clang-format clang-tidy
 
