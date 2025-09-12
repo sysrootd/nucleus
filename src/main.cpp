@@ -3,9 +3,9 @@
 #include "stm32f401xe.h"
 #include "thread.hpp"
 
-// ----- Task 1 -----
-void led_task_1() {
-  GPIO led1(GPIOB);
+
+void Red_led() {
+  GPIO led1 = GPIO(GPIOB);
   led1.set_mode(GPIOPin::Pin13, GPIOMode::Output);
 
   while (true) {
@@ -16,9 +16,8 @@ void led_task_1() {
   }
 }
 
-// ----- Task 2 -----
-void led_task_2() {
-  GPIO led2(GPIOB);
+void Green_led() {
+  GPIO led2 = GPIO(GPIOB);
   led2.set_mode(GPIOPin::Pin14, GPIOMode::Output);
 
   while (true) {
@@ -29,15 +28,14 @@ void led_task_2() {
   }
 }
 
-// ----- Stacks -----
 static uint32_t stack1[128];
 static uint32_t stack2[128];
 
 int main() {
   Scheduler::init();
 
-  Thread t1(led_task_1, 1, stack1, 128);
-  Thread t2(led_task_2, 1, stack2, 128);
+  Thread t1(Red_led, 1, stack1, 128);
+  Thread t2(Green_led, 1, stack2, 128);
 
   Scheduler::add_thread(t1.get_tcb());
   Scheduler::add_thread(t2.get_tcb());
