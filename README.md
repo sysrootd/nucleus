@@ -36,9 +36,8 @@ text
 - [Cortex-Debug VS Code extension](https://marketplace.visualstudio.com/items?itemName=marus25.cortex-debug)
 
 ## Building
-
-From the project root, run:
 ```sh
+From the project root, run:
 make
 
 This will generate build/kernal.elf and build/kernal.bin.
