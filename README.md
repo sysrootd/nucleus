@@ -117,7 +117,7 @@ VS Code Configuration
     .vscode/launch.json: Debug configuration for STM32F401RBT6 with OpenOCD
 
     .vscode/settings.json: Toolchain and file association settings
-MIT License
+License
 
 Copyright (c) 2025
 
