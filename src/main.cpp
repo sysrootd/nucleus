@@ -1,50 +1,39 @@
-#include "gpio.hpp"
-#include "sched.hpp"
-#include "stm32f401xe.h"
-#include "thread.hpp"
+#include "rtos.hpp"
+#include "systick.hpp"
 
-// ----- Task 1 -----
-void led_task_1() {
-  GPIO led1(GPIOB);
-  led1.set_mode(GPIOPin::Pin13, GPIOMode::Output);
+using namespace rtos;
 
-  while (true) {
-    led1.toggle(GPIOPin::Pin13);
-    for (volatile int i = 0; i < 100000; ++i)
-      ;
-    Scheduler::yield();
-  }
+Semaphore sem;
+
+void led_task_1(void*) {
+    while (1) {
+        sem_wait(sem);
+        // toggle GPIO here
+        // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+        sleep_ms(100);
+        sem_post(sem);
+        sleep_ms(100);
+    }
 }
-
-// ----- Task 2 -----
-void led_task_2() {
-  GPIO led2(GPIOB);
-  led2.set_mode(GPIOPin::Pin14, GPIOMode::Output);
-
-  while (true) {
-    led2.toggle(GPIOPin::Pin14);
-    for (volatile int i = 0; i < 100000; ++i)
-      ;
-    Scheduler::yield();
-  }
+void led_task_2(void*) {
+    while (1) {
+        sem_wait(sem);
+        // toggle another LED
+        // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_6);
+        sleep_ms(50);
+        sem_post(sem);
+        sleep_ms(50);
+    }
 }
-
-// ----- Stacks -----
-static uint32_t stack1[128];
-static uint32_t stack2[128];
 
 int main() {
-  Scheduler::init();
+    SysTick_Init();
+    rtos::init();
 
-  Thread t1(led_task_1, 1, stack1, 128);
-  Thread t2(led_task_2, 1, stack2, 128);
+    sem_init(sem, 1);
+    create_thread(led_task_1, nullptr, /*prio*/1);
+    create_thread(led_task_2, nullptr, /*prio*/1);
 
-  Scheduler::add_thread(t1.get_tcb());
-  Scheduler::add_thread(t2.get_tcb());
-
-  Scheduler::start();
-
-  while (1) {
-    __asm volatile("wfi");
-  }
+    rtos::start(); // never returns
+    while (1) {}
 }
